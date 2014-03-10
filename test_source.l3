@@ -1,0 +1,45 @@
+func SumVectors
+	( A, B -> [[int]]; g -> char ) -> int
+	size = length(A) ->int;
+	check size == length(B);
+
+	C = [ int size ]-> [ int ];
+
+	for i = 0 -> int to size - 1 do
+		C[i] = A[i] + B[i]
+	endfor;
+
+	asdasd( asd, asd );
+
+	SumVectors = 123;
+	SumVectors[ 25 + 67 ] = 123;
+endfunc
+
+
+proc asdasd
+	( a, asd, asd -> bool )
+endproc
+
+
+proc main ()
+
+	asd = [[[int (12 + 12)]]] -> int;
+
+	if a > 56 then
+		a = a + s;
+	elseif a < 20 then
+		b = 1;
+	elseif a == 9 then
+
+	else
+		check 5 / 6
+	endif;
+
+	repeat
+		a = 5
+	until a == tt;
+
+	while 3 > 4 do
+	endwhile
+
+endproc
