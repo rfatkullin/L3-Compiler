@@ -1,5 +1,5 @@
-func SumVectors
-	( A, B -> [[int]]; g -> char ) -> int
+proc SumVectors
+	( A, B -> [[int]]; g -> char )
 	size = length(A) ->int;
 	check size == length(B);
 
@@ -10,16 +10,7 @@ func SumVectors
 	endfor;
 
 	asdasd( asd, asd );
-
-	SumVectors = 123;
-	SumVectors[ 25 + 67 ] = 123;
-endfunc
-
-
-proc asdasd
-	( a, asd, asd -> bool )
 endproc
-
 
 proc main ()
 

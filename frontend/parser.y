@@ -740,37 +740,85 @@ params : IDENT COMMA params
 
 %%
 
-void SubsDefNodePrint( SubsDefNode* node );
-
-int main(int argc, char* argv[])
+bool ReadFile(const char* inputFilePath, std::string& output)
 {
 	const int READ_N = 100;
-	FILE* pFile = fopen( argv[1], "rb" );
-	FILE* cilCodeFile = fopen( argv[2], "w" );
+	FILE* pFile = fopen( inputFilePath, "rb" );
 	char buff[ READ_N + 1 ];
-	std::string source;
 	int currLen;
+
+	if (pFile == NULL)
+	{
+		printf("[Error]: Can't open source file for reading!\n");
+		return false;
+	}
 
 	while ( ( currLen = fread( buff, sizeof( char ), READ_N - 1, pFile ) ) > 0 )
 	{
 		buff[ currLen ] = 0;
-		source += buff;
+		output += buff;
 	}
 
-	SubsDefNode* main_node;
+	fclose(pFile);
+
+	return true;
+}
+
+SubsDefNode* Parse(std::string source)
+{
+	SubsDefNode* mainNode;
 	yyscan_t scanner;
 	struct Extra extra;
 	init_scanner( const_cast<char*>(source.c_str()), &scanner, &extra );
-	yyparse( scanner, &main_node );
 
-	out = stdout;
+	int result = yyparse( scanner, &mainNode );
+	switch (result)
+	{
+		case 0 :
+				//Successful
+				break;
+		case 1 :
+				printf("[Error]: Syntax error!\n");
+				break;
 
-	Compiler compiler(main_node, cilCodeFile);
-	compiler.Run();
+		case 2 :
+				printf("[Error]: Memory exhaustion!\n");
+				break;
 
-	fclose( out );
-	fclose( cilCodeFile );
+		default :
+				printf("Unexpected result from yyparse!\n");
+	}
+
+	if (result > 0)
+		mainNode = NULL;
+
 	destroy_scanner( scanner );
+
+	return mainNode;
+}
+
+bool Compile(SubsDefNode* mainNode, const char* outputFilePath)
+{
+	FILE* cilCodeFile = fopen(outputFilePath, "w");
+	L3Compiler::Compiler compiler(mainNode, cilCodeFile);
+	compiler.Run();
+	fclose( cilCodeFile );
+}
+
+int main(int argc, char* argv[])
+{
+	std::string source = "";
+
+	if (!ReadFile(argv[1], source))
+	{
+		printf("[Error]: Can't read file!\n");
+		return 0;
+	}
+
+	SubsDefNode* mainNode = Parse(source);
+
+	if (mainNode != NULL)
+		Compile(mainNode, argv[2]);
 
 	return 0;
 }

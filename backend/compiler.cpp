@@ -2,148 +2,205 @@
 #include "compiler.h"
 #include "parser.tab.h"
 
-Compiler :: Compiler(SubsDefNode* program, FILE* out)
-	: 	_program(program),
-		_out(out)
+namespace L3Compiler
 {
-}
-
-void Compiler :: Run()
-{
-	if (!StaticTest())
+	Compiler :: Compiler(SubsDefNode* program, FILE* out)
+		: 	_program(program),
+			_out(out)
 	{
-		printf("Static test failed!\n");
-		return;
 	}
 
-	fprintf(_out, ".assembly Azaza-assembly {}\n");
-	fprintf(_out, ".assembly extern mscorlib {}\n");
-
-	ProcessSubsDef();
-}
-
-bool Compiler :: StaticTest()
-{
-	if (!_program)
+	void Compiler :: Run()
 	{
-		printf("Empty source\n");
+		if (!StaticTest())
+		{
+			printf("Static test failed!\n");
+			return;
+		}
+
+		fprintf(_out, ".assembly AzazaAssembly {}\n");
+		fprintf(_out, ".assembly extern mscorlib {}\n\n");
+
+		ProcessSubsDef();
+	}
+
+	std::string Compiler :: GetString(TypeNode* node)
+	{
+		std::string str = "";
+
+		switch (node->type)
+		{
+			case INT_TYPE:
+				str += "int32";
+				break;
+			case BOOL_TYPE:
+				str += "int8";
+				break;
+			case CHAR_TYPE:
+				str += "int8";
+				break;
+		}
+
+		for (int i = 0; i < node->dimen; ++i)
+			str += "[]";
+
+		return str;
+	}
+
+	bool Compiler :: StaticTest()
+	{
+		if (!_program)
+		{
+			printf("Empty source\n");
+			return false;
+		}
+
+		if (!IsExistsMainFunc())
+		{
+			printf("Can't find main func\n");
+			return false;
+		}
+
+		return true;
+	}
+
+	bool Compiler :: IsExistsMainFunc()
+	{
+		SubsDefNode* node = _program;
+
+		while (node)
+		{
+			if (!strcmp("main", GetSubName(node->def)))
+				return true;
+
+			node = node->tail;
+		}
+
 		return false;
 	}
 
-	if (!IsExistsMainFunc())
+	const char* Compiler :: GetSubName(SubDefNode* node)
 	{
-		printf("Can't find main func\n");
-		return false;
+		switch (node->tag)
+		{
+			case FUNC :
+				return node->func->signature->ident;
+				break;
+			case PROC :
+				return node->proc->signature->ident;
+				break;
+			default :
+				return "";
+				break;
+		}
 	}
 
-	return true;
-}
-
-bool Compiler :: IsExistsMainFunc()
-{
-	SubsDefNode* node = _program;
-
-	while (node)
+	void Compiler :: ProcessSubsDef()
 	{
-		if (!strcmp("main", GetSubName(node->def)))
-			return true;
+		SubsDefNode* node = _program;
 
-		node = node->tail;
+		while (node)
+		{
+			ProcessSubDefNode(node->def);
+			node = node->tail;
+		};
 	}
 
-	return false;
-}
-
-const char* Compiler :: GetSubName(SubDefNode* node)
-{
-	switch (node->tag)
+	void Compiler :: ProcessSubDefNode(SubDefNode* node)
 	{
-		case FUNC :
-			return node->func->signature->ident;
-			break;
-		case PROC :
-			return node->proc->signature->ident;
-			break;
-		default :
-			return "";
-			break;
+		fprintf(_out, ".method static ");
+
+		switch (node->tag)
+		{
+			case FUNC :
+				ProcessFuncDef(node->func);
+				break;
+			case PROC :
+				ProcessProcDef(node->proc);
+				break;
+			default :
+				printf("Unexpected structure with tag = %d!\n", node->tag);
+				break;
+		}
 	}
-}
 
-void Compiler :: ProcessSubsDef()
-{
-	SubsDefNode* node = _program;
-
-	while (node)
+	void Compiler :: ProcessFuncDef(FuncDefNode* node)
 	{
-		ProcessSubDefNode(node->def);
-		node = node->tail;
-	};
-}
+		_scopeVariables.clear();
 
-void Compiler :: ProcessSubDefNode(SubDefNode* node)
-{
-	fprintf(_out, ".method static ");
+		fprintf(_out, "%s ", GetString(node->type).c_str());
 
-	switch (node->tag)
-	{
-		case FUNC :
-			ProcessFuncDef(node->func);
-			break;
-		case PROC :
-			ProcessProcDef(node->proc);
-			break;
-		default :
-			printf("Unexpected structure with tag = %d!\n", node->tag);
-			break;
+		ProcessSignature(node->signature);
+
+		fprintf(_out, "{\n");
+
+		ProcessStatements(node->statements);
+
+		fprintf(_out, "}\n\n");
 	}
-}
 
-void Compiler :: ProcessFuncDef(FuncDefNode* node)
-{
-	fprintf(_out, "type ");
+	void Compiler :: ProcessProcDef(ProcDefNode* node)
+	{
+		_scopeVariables.clear();
 
-	ProcessSignature(node->signature);
+		fprintf(_out, "void ");
 
-	fprintf(_out, "{\n");
+		ProcessSignature(node->signature);
 
-	ProcessStatements(node->statements);
+		fprintf(_out, "{\n");
 
-	fprintf(_out, "}\n\n");
-}
+		if (!strcmp(node->signature->ident, "main"))
+		{
+			fprintf(_out, ".entrypoint\n");
+		}
 
-void Compiler :: ProcessProcDef(ProcDefNode* node)
-{
-	fprintf(_out, "void ");
+		ProcessStatements(node->statements);
 
-	ProcessSignature(node->signature);
+		fprintf(_out, "}\n\n");
+	}
 
-	fprintf(_out, "{\n");
+	void Compiler :: ProcessSignature(SigNode* node)
+	{
+		fprintf(_out, "%s", node->ident);
 
-	ProcessStatements(node->statements);
+		ProcessParamsDef(node->params_def);
+	}
 
-	fprintf(_out, "}\n\n");
-}
+	void Compiler :: ProcessParamsDef(ParamsDefNode* params)
+	{
+		fprintf(_out, "(");
 
-void Compiler :: ProcessSignature(SigNode* node)
-{
-	fprintf(_out, "%s", node->ident);
+		while (params)
+		{
+			IdentsNode* idents = params->params_sec->idents;
+			std::string typeStr = GetString(params->params_sec->type);
 
-	ProcessParamsDef(node->params_def);
-}
+			while (idents)
+			{
+				if (_scopeVariables.find(idents->ident) != _scopeVariables.end())
+				{
+					printf("[Error]: conflicting in declaration function args!\n");
+				}
 
-void Compiler :: ProcessParamsDef(ParamsDefNode* node)
-{
-	fprintf(_out, "(");
+				_scopeVariables.insert(std::pair<char*, Variable>(idents->ident, Variable(_scopeVariables.size(), true, params->params_sec->type)));
 
-	fprintf(_out, "params");
+				if ((idents->tail != NULL) || (params->tail != NULL))
+					fprintf(_out, "%s, ", typeStr.c_str());
+				else
+					fprintf(_out, "%s", typeStr.c_str());
 
-	fprintf(_out, ")\n");
-}
+				idents = idents->tail;
+			};
 
-void Compiler :: ProcessStatements(StatementsNode* node)
-{
-	fprintf(_out, "statement1;\nstatement2\n");
-}
+			params = params->tail;
+		}
 
+		fprintf(_out, ")\n");
+	}
 
+	void Compiler :: ProcessStatements(StatementsNode* node)
+	{
+		//fprintf(_out, "statement1;\nstatement2\n");
+	}
+
+} //L3Compiler namespace
