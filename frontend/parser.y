@@ -799,10 +799,8 @@ SubsDefNode* Parse(std::string source)
 
 bool Compile(SubsDefNode* mainNode, const char* outputFilePath)
 {
-	FILE* cilCodeFile = fopen(outputFilePath, "w");
-	L3Compiler::Compiler compiler(mainNode, cilCodeFile);
-	compiler.Run();
-	fclose( cilCodeFile );
+    L3Compiler::Compiler compiler(mainNode, outputFilePath);
+    compiler.Run();
 }
 
 int main(int argc, char* argv[])

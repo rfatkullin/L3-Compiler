@@ -1,6 +1,7 @@
-#ifndef _NODE_H_INCLUDED
-#define _NODE_H_INCLUDED
+#ifndef _NODE_H_
+#define _NODE_H_
 
+#include <string>
 #include <stdio.h>
 
 class SubDefNode;
@@ -398,7 +399,7 @@ public :
 	TypeNode( int new_type, int new_dimen )
 		: 	type( new_type ),
 			dimen( new_dimen )
-	{}
+	{}    
 
 	int type;
 	int dimen;
