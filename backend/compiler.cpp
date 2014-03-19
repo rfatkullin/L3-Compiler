@@ -628,6 +628,17 @@ namespace L3Compiler
 
 	bool Compiler :: WhileStatementProcess(WhileDoNode* node)
     {
+		int startLabelNum = _codeGen->SetNewLabel();
+
+		CHECK_SUCCESS(ExprProcess(node->expr));
+
+		int afterLoopLabel = _codeGen->SetCondJumpToNewLabel(false);
+
+		CHECK_SUCCESS(StatementsProcess(node->statements));
+
+		_codeGen->SetJumpTo(startLabelNum);
+		_codeGen->SetLabel(afterLoopLabel);
+
         return true;
     }
 

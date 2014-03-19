@@ -1,8 +1,9 @@
 proc main ()
-	a = tt || ff -> bool;
+	a = 0 -> int;
 
-	a = tt;
-
-	print a;
+	while a < 5 do
+		print a;
+		a = a + 1;
+	endwhile
 
 endproc

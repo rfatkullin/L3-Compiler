@@ -55,6 +55,11 @@ public :
 	void PrintChar();
 	void PrintBool();
 
+	void SetLabel(int labelNum);
+	void SetJumpTo(int toLabelNum);
+	int SetCondJumpToNewLabel(bool onTrue);
+	int SetNewLabel();
+
     static std::string TypeToString(TypeNode* node);
     static std::string IntToStr(int num);
 
@@ -68,7 +73,8 @@ private :
 	void IncStackSize();
     void DecStackSize();
 
-	std::string GetNewLabel();
+	std::string GetNewLabel(int* labelNum);
+	std::string GetLabelNameByNum(int labelNum);
 
     FILE*       _output;
 

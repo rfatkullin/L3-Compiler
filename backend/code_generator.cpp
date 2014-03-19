@@ -172,7 +172,7 @@ void CodeGenerator :: DecStackSize()
 
 void CodeGenerator :: LogAndOperator()
 {
-	std::string label = GetNewLabel();
+	std::string label = GetNewLabel(NULL);
 
 	_ilCode += TwoTab + "brtrue.s " + label + "\n";
 	_ilCode += TwoTab + "pop\n";
@@ -184,7 +184,7 @@ void CodeGenerator :: LogAndOperator()
 
 void CodeGenerator :: LogOrOperator()
 {
-	std::string label = GetNewLabel();
+	std::string label = GetNewLabel(NULL);
 
 	_ilCode += TwoTab + "brfalse.s " + label + "\n";
 	_ilCode += TwoTab + "pop\n";
@@ -304,6 +304,47 @@ void CodeGenerator :: PrintBool()
 	_ilCode += TwoTab + "call void [mscorlib]System.Console::WriteLine(bool)\n";
 }
 
+int CodeGenerator :: SetNewLabel()
+{
+	int labelNum;
+	std::string label = GetNewLabel(&labelNum);
+
+	_ilCode += OneTab + label + ": nop\n";
+
+	return labelNum;
+}
+
+int CodeGenerator :: SetCondJumpToNewLabel(bool onTrue)
+{
+	int labelNum;
+	std::string label = GetNewLabel(&labelNum);
+
+	_ilCode += TwoTab;
+
+	if (onTrue)
+	{
+		_ilCode += "brtrue ";
+	}
+	else
+	{
+		_ilCode += "brfalse ";
+	}
+
+	_ilCode += label + "\n";
+
+	return labelNum;
+}
+
+void CodeGenerator :: SetJumpTo(int toLabelNum)
+{
+	_ilCode += TwoTab + "br " + GetLabelNameByNum(toLabelNum) + "\n";
+}
+
+void CodeGenerator :: SetLabel(int labelNum)
+{
+	_ilCode += TwoTab + GetLabelNameByNum(labelNum) + ": nop\n";
+}
+
 std::string CodeGenerator :: TypeToString(TypeNode* node)
 {
     std::string str = "";
@@ -334,7 +375,15 @@ std::string CodeGenerator :: IntToStr(int num)
     return ss.str();
 }
 
-std::string CodeGenerator :: GetNewLabel()
+std::string CodeGenerator :: GetNewLabel(int* labelNum)
 {
-	return "Label" + IntToStr(_currLabelNum);
+	if (labelNum != NULL)
+		*labelNum = _currLabelNum;
+
+	return GetLabelNameByNum(_currLabelNum++);
+}
+
+std::string CodeGenerator :: GetLabelNameByNum(int labelNum)
+{
+	return "Label" + IntToStr(labelNum);
 }
