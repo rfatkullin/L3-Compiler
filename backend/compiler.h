@@ -4,6 +4,7 @@
 #include <map>
 #include <stack>
 #include <string>
+#include <set>
 #include <string.h>
 #include "node.h"
 #include "variable.h"
@@ -12,7 +13,9 @@
 
 namespace L3Compiler
 {
-    #define CHECK_TRUE(param) if (!(param)) return false;	    
+	#define CHECK_TRUE(param) if (!(param)) return false;
+	#define CHECK_TRUE_OUTPUT(param, errorStr) if (!(param)) { printf("%s\n", errorStr); return false;}
+	#define PROCESS_ERROR(str) {printf("[Error]: %s\n", str); return false;}
 
 	class Compiler
 	{
@@ -22,12 +25,19 @@ namespace L3Compiler
 		void Run();
 
 	private :
+		static const int ErrorStrCnt = 1;
+		static const char* ErrorsStrList[ErrorStrCnt];
+
 		SubsDefNode* _program;
         CodeGenerator* _codeGen;
-        std::map<const char*, Variable, StrCmp> _scopeVars;
+        std::map<const char*, Variable, StrCmp> _scopeVars;		
         std::stack<TypeNode> _stackValuesTypes;
         int _blockArgsCount;
-        int _blockLocalsCount;		
+		int _blockLocalsCount;
+
+		std::map<int, Variable> _scopeTmpVars;
+		std::set<int> _allScopeTmpVars;
+		std::set<int> _freeScopeTmpVars;
 
         const char* GetSubName(SubDefNode* node);
         std::string GetString(TypeNode* type);
@@ -35,7 +45,6 @@ namespace L3Compiler
         bool IsExistsMainFunc();
 		bool StaticTest();
         bool FindVariable(const char* ident, Variable& var);
-        bool TypeMatch(const TypeNode& aT, const TypeNode& bT);
 
         bool ProcessSubsDef();
         bool ProcessSubDefNode(SubDefNode* node);
@@ -54,7 +63,17 @@ namespace L3Compiler
         bool ProcessCheckStatement(CheckNode* node);
         bool ProcessNewArrAssign(Variable var, NewArrNode* node);
         bool ProcessExprAssign(Variable var, ExprNode* node);
+		bool ProcessExpr(ExprNode* node);
 
+		bool IsIntType(const TypeNode& type);
+		bool IsCharType(const TypeNode& type);
+		bool IsBoolType(const TypeNode& type);
+		bool IsCharOrIntType(const TypeNode& type);
+
+		bool TypeMatch(const TypeNode& aT, const TypeNode& bT);
+
+		int GetFreeTmpVar(const TypeNode& type);
+		void RetrieveTmpVar(int num);
 	};
 
 } // L3Compiler namespace

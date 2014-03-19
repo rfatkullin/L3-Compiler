@@ -4,7 +4,8 @@
 #include "parser.tab.h"
 #include "code_generator.h"
 
-const std::string CodeGenerator :: InstPrefix = "\t\t";
+const std::string CodeGenerator :: TwoTab = "\t\t";
+const std::string CodeGenerator :: OneTab = "\t";
 
 CodeGenerator :: CodeGenerator(const char* outputFilePath)
 {
@@ -26,6 +27,7 @@ void CodeGenerator :: Reset()
     _ilCode = "";
     _maxStackDepth = -1;
     _currStackDepth = 0;
+	_currLabelNum   = 0;
     _isEntryPoint = false;
 }
 
@@ -80,11 +82,11 @@ void CodeGenerator :: BlockStart()
 void CodeGenerator :: BlockEnd(const std::map<const char*, Variable, StrCmp>& scopeVariables)
 {
     if (_isEntryPoint)
-        fprintf(_output, "%s.entrypoint\n", InstPrefix.c_str() );
+		fprintf(_output, "%s.entrypoint\n", TwoTab.c_str() );
 
-    fprintf(_output, "%s.maxstack %d\n", InstPrefix.c_str(), _maxStackDepth);
+	fprintf(_output, "%s.maxstack %d\n", TwoTab.c_str(), _maxStackDepth);
 
-    std::string localsInit = InstPrefix + ".locals init(";
+	std::string localsInit = TwoTab + ".locals init(";
     int varIndex = 0;
     int varsCnt = scopeVariables.size();
     for (std::map<const char*, Variable, StrCmp>::const_iterator it = scopeVariables.begin(); it != scopeVariables.end(); ++it)
@@ -105,20 +107,20 @@ void CodeGenerator :: BlockEnd(const std::map<const char*, Variable, StrCmp>& sc
 
     fprintf(_output, "%s", _ilCode.c_str() );
 
-    fprintf(_output, "%sret\n}\n\n", InstPrefix.c_str());
+	fprintf(_output, "%sret\n}\n\n", TwoTab.c_str());
 }
 
 void CodeGenerator :: LoadIntConst(int num)
 {
     IncStackSize();
-    _ilCode += InstPrefix + "ldc.i4\t" + IntToStr(num) + "\n";
+	_ilCode += TwoTab + "ldc.i4\t" + IntToStr(num) + "\n";
 }
 
 void CodeGenerator :: LoadBoolConst(bool val)
 {
     IncStackSize();
 
-    _ilCode += InstPrefix;
+	_ilCode += TwoTab;
 
     if (val)
         _ilCode += "ldc.i4.1\n";
@@ -137,7 +139,7 @@ void CodeGenerator :: LoadVariable(const Variable& var)
 {
     IncStackSize();
 
-    _ilCode += InstPrefix;
+	_ilCode += TwoTab;
 
     if (var._isArg)
         _ilCode = _ilCode + "ldarg " + IntToStr(var._id) + "\n";
@@ -149,7 +151,7 @@ void CodeGenerator :: SaveFromStack(const Variable& var)
 {
     DecStackSize();
 
-    _ilCode += InstPrefix;
+	_ilCode += TwoTab;
 
     if (var._isArg)
         _ilCode = _ilCode + "starg " + IntToStr(var._id) + "\n";
@@ -166,6 +168,125 @@ void CodeGenerator :: IncStackSize()
 void CodeGenerator :: DecStackSize()
 {
     --_currStackDepth;
+}
+
+void CodeGenerator :: LogAndOperator()
+{
+	std::string label = GetNewLabel();
+
+	_ilCode += TwoTab + "brtrue.s " + label + "\n";
+	_ilCode += TwoTab + "pop\n";
+	_ilCode += TwoTab + "ldc.i4.0\n";
+	_ilCode += OneTab + label + ": nop\n";
+
+	DecStackSize();
+}
+
+void CodeGenerator :: LogOrOperator()
+{
+	std::string label = GetNewLabel();
+
+	_ilCode += TwoTab + "brfalse.s " + label + "\n";
+	_ilCode += TwoTab + "pop\n";
+	_ilCode += TwoTab + "ldc.i4.1\n";
+	_ilCode += OneTab + label + ": nop\n";
+
+	DecStackSize();
+}
+
+void CodeGenerator :: LogXorOperator()
+{
+	_ilCode += TwoTab + "xor\n";
+	DecStackSize();
+}
+
+void CodeGenerator :: LogNotOperator()
+{
+	_ilCode += TwoTab + "ldc.i4.0\n";
+	_ilCode += TwoTab + "ceq\n";
+
+	DecStackSize();
+}
+
+void CodeGenerator :: DivOperator()
+{
+	_ilCode += TwoTab + "div\n";
+	DecStackSize();
+}
+
+void CodeGenerator :: ModOperator()
+{
+	_ilCode += TwoTab + "rem\n";
+	DecStackSize();
+}
+
+void CodeGenerator :: PowOperator(int tmpLocVarInd)
+{
+	std::string varNum = IntToStr(tmpLocVarInd);
+	_ilCode += TwoTab + "stloc.s " + varNum + "\n";
+	_ilCode += TwoTab + "conv.r4\n";
+	_ilCode += TwoTab + "ldloc.s " + varNum + "\n";
+	_ilCode += TwoTab + "conv.r4\n";
+	_ilCode += TwoTab + "call System.Math.Pow\n";
+
+	DecStackSize();
+}
+
+void CodeGenerator :: NegOperator()
+{
+	_ilCode += TwoTab + "conv.i4\n";
+	_ilCode += TwoTab + "neg\n";
+}
+
+void CodeGenerator :: NotOperator()
+{
+	_ilCode += TwoTab + "not\n";
+}
+
+void CodeGenerator :: Add()
+{
+	_ilCode += TwoTab + "add\n";
+}
+
+void CodeGenerator :: Sub()
+{
+	_ilCode += TwoTab + "sub\n";
+}
+
+void CodeGenerator :: EqOperator()
+{
+	_ilCode += TwoTab + "ceq\n";
+}
+
+void CodeGenerator :: NotEqOperator()
+{
+	_ilCode += TwoTab + "ceq\n";
+	_ilCode += TwoTab + "ldc.i4.0\n";
+	_ilCode += TwoTab + "ceq\n";
+}
+
+void CodeGenerator :: LssOperator()
+{
+	_ilCode += TwoTab + "clt\n";
+}
+
+void CodeGenerator :: GtrOperator()
+{
+	_ilCode += TwoTab + "cgt\n";
+}
+
+void CodeGenerator :: LssEqOperator()
+{
+	_ilCode += TwoTab + "cgt\n";
+	_ilCode += TwoTab + "ldc.i4.0\n";
+	_ilCode += TwoTab + "ceq\n";
+}
+
+void CodeGenerator :: GtrEqOperator()
+{
+	_ilCode += TwoTab + "clt\n";
+	_ilCode += TwoTab + "ldc.i4.0\n";
+	_ilCode += TwoTab + "ceq\n";
 }
 
 std::string CodeGenerator :: TypeToString(TypeNode* node)
@@ -196,4 +317,9 @@ std::string CodeGenerator :: IntToStr(int num)
     std::stringstream ss;
     ss << num;
     return ss.str();
+}
+
+std::string CodeGenerator :: GetNewLabel()
+{
+	return "Label" + IntToStr(_currLabelNum);
 }

@@ -5,6 +5,8 @@
 #include "node.h"
 #include "compiler.h"
 
+#pragma GCC diagnostic ignored "-Wwrite-strings"
+
 FILE* out = NULL;
 %}
 

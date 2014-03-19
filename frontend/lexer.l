@@ -53,7 +53,7 @@ void Error( const char* a_message )
 int 		continued = 0;
 int 		commentDet = 0;
 std::string tmpStr;
-char 		tmpCh;
+int 		tmpCh;
 
 %}
 
@@ -301,8 +301,9 @@ while 		return WHILE;
 							else if ( strlen( numStart ) > 9 )
 								Error( "Numeric literal to char too big!" );
 
-							numStart[ 9 ] = 0;
-							sscanf( yytext, "%x", &( yylval->m_ch ) );
+							numStart[ 9 ] = 0;                                                        
+                                                        sscanf( yytext, "%x", &tmpCh);
+                                                        yylval->m_ch = tmpCh;
 							continued = 1;
 							BEGIN( CHAR_2 );
 						}
@@ -384,12 +385,12 @@ while 		return WHILE;
 									BEGIN( STRING );
 								}
 
-<STRING_ESCAPE>{HEX_SUFF}\$		{
-									sscanf( yytext, "%x", &tmpCh );
-									tmpStr += tmpCh;
-									continued = 1;
-									BEGIN( STRING );
-								}
+<STRING_ESCAPE>{HEX_SUFF}\$                     {
+                                                    sscanf( yytext, "%x", &tmpCh );
+                                                    tmpStr += (char)tmpCh;
+                                                    continued = 1;
+                                                    BEGIN( STRING );
+                                                }
 
 <STRING_ESCAPE>\$				{
 									BEGIN( STRING );

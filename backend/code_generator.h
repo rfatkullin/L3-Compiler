@@ -30,22 +30,48 @@ public :
     void LoadVariable(const Variable& var);
     void SaveFromStack(const Variable& var);
 
+	void LogAndOperator();
+	void LogOrOperator();
+	void LogXorOperator();
+	void LogNotOperator();
+
+	void DivOperator();
+	void ModOperator();
+	void PowOperator(int tmpLocVarInd);
+
+	void NegOperator();
+	void NotOperator();
+	void Add();
+	void Sub();
+
+	void EqOperator();
+	void NotEqOperator();
+	void LssOperator();
+	void GtrOperator();
+	void LssEqOperator();
+	void GtrEqOperator();
+
     static std::string TypeToString(TypeNode* node);
     static std::string IntToStr(int num);
 
 private :
 
-    static const std::string InstPrefix;
+	static const std::string TwoTab;
+	static const std::string OneTab;
 
     void Reset();
-    void IncStackSize();
+
+	void IncStackSize();
     void DecStackSize();
+
+	std::string GetNewLabel();
 
     FILE*       _output;
 
     std::string _ilCode;
     int         _maxStackDepth;
     int         _currStackDepth;
+	int         _currLabelNum;
     bool        _isEntryPoint;
 };
 

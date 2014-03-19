@@ -1,4 +1,4 @@
 proc main ()
-	a = 12, b = 8 -> int;
+	a = TT || FF, b = 8 -> int;
 
 endproc
