@@ -1,4 +1,8 @@
 proc main ()
-	a = TT || FF, b = 8 -> int;
+	a = tt || ff -> bool;
+
+	a = tt;
+
+	print a;
 
 endproc

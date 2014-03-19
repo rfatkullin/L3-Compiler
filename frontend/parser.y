@@ -21,47 +21,48 @@ FILE* out = NULL;
 %parse-param { SubsDefNode** main_node }
 %union
 {
-	char* 				m_ident;
-	int 				m_number;
-	char 				m_ch;
-	char* 				m_str;
+	char*			m_ident;
+	int			m_number;
+	char		    	m_ch;
+	char*		    	m_str;
 	SubsDefNode*		m_subs_def_node;
-	SubDefNode*			m_sub_def_node;
+	SubDefNode*	    	m_sub_def_node;
 	FuncDefNode*		m_func_def_node;
 	ProcDefNode*		m_proc_def_node;
-	SigNode*			m_sig_node;
+	SigNode*	    	m_sig_node;
 	ParamsDefNode*		m_params_def_node;
 	ParamSecNode*		m_param_sec_node;
-	TypeNode*			m_type_node;
+	TypeNode*	    	m_type_node;
 	StatementsNode*		m_statements_node;
-	IdentsNode*			m_idents_node;
+	IdentsNode*	    	m_idents_node;
 	StatementNode* 		m_statement_node;
 	VarsDefNode* 		m_vars_def_node;
-	VarsNode* 			m_vars_node;
-	VarNode* 			m_var_node;
+	VarsNode*	    	m_vars_node;
+	VarNode*	    	m_var_node;
 	AssignNode* 		m_assign_node;
 	NewArrBasic* 		m_new_arr_basic;
 	NewArrNode* 		m_new_arr_node;
 	RepeatNode* 		m_repeat_node;
-	CheckNode* 			m_check_node;
+	CheckNode*	    	m_check_node;
+	PrintNode*		m_print_node;
 	FuncCallNode* 		m_func_call_node;
-	ForNode* 			m_for_node;
+	ForNode*	    	m_for_node;
 	ForFromParamNode* 	m_for_param_node;
 	ForToParamNode* 	m_for_to_param_node;
-	IfNode* 			m_if_node;
+	IfNode*			m_if_node;
 	IfSuffixNode* 		m_if_suffix_node;
 	ElseIfNode* 		m_else_if_node;
 	WhileDoNode* 		m_while_do_node;
 	LeftValueNode* 		m_left_value_node;
-	ArrElNode* 			m_arr_el_node;
-	ExprNode*			m_expr_node;
+	ArrElNode*		m_arr_el_node;
+	ExprNode*		m_expr_node;
 }
 
 %right ASSIGN
 %left PLUS MINUS
 %left DIVIDE
 
-%token CHAR CHAR_TYPE CHECK DO ELSE ELSEIF ENDFOR ENDFUNC ENDIF ENDPROC ENDWHILE FF FOR FUNC IF INT_TYPE NIL PROC REPEAT STEP THEN
+%token CHAR CHAR_TYPE CHECK PRINT DO ELSE ELSEIF ENDFOR ENDFUNC ENDIF ENDPROC ENDWHILE FF FOR FUNC IF INT_TYPE NIL PROC REPEAT STEP THEN
 %token TO TT UNTIL WHILE LPAREN RPAREN RLPAREN RRPAREN COMMA SEMICOLON POINTER_METHOD ASSIGN PLUS MINUS DIVIDE MOD CAP EXCL
 %token LOG_CAP EQ NOT_EQ LSS_EQ GTR_EQ LSS GTR LOG_AND LOG_OR BOOL_TYPE
 %token IDENT STR NUMBER BOOL
@@ -99,6 +100,7 @@ FILE* out = NULL;
 %type <m_new_arr_node>		new_arr
 %type <m_repeat_node>		repeat
 %type <m_check_node>		check
+%type <m_print_node>		print
 %type <m_func_call_node>	func_call
 %type <m_for_node>			for
 %type <m_for_param_node>	for_from_param
@@ -269,6 +271,12 @@ statement :	vars_def
 			StatementNode* node = new StatementNode( CHECK );
 			node->check = $1;
 			$$ = node;
+		}
+	| print
+		{
+			StatementNode* node = new StatementNode(PRINT);
+			node->print = $1;
+			$$ = node;
 		};
 
 check : CHECK expr
@@ -276,6 +284,12 @@ check : CHECK expr
 			CheckNode* node = new CheckNode( $2 );
 			$$ = node;
 		};
+
+print : PRINT expr
+		{
+			PrintNode* node = new PrintNode($2);
+			$$ = node;
+		}
 
 vars_def : vars POINTER_METHOD type
 			{
@@ -702,17 +716,17 @@ factor_ident : IDENT
 factor_bool : TT
 		{
 			ExprNode* node = new ExprNode();
-			node->op = BOOL;
+			node->op = TT;
 			node->un.log = true;
 			$$ = node;
 		}
-	| FF
-	{
-		ExprNode* node = new ExprNode();
-		node->op = BOOL;
-		node->un.log = false;
-		$$ = node;
-	}
+	    | FF
+		{
+			ExprNode* node = new ExprNode();
+			node->op = FF;
+			node->un.log = false;
+			$$ = node;
+		}
 
 
 get_arr_element : IDENT RLPAREN expr RRPAREN
@@ -802,23 +816,25 @@ SubsDefNode* Parse(std::string source)
 bool Compile(SubsDefNode* mainNode, const char* outputFilePath)
 {
     L3Compiler::Compiler compiler(mainNode, outputFilePath);
-    compiler.Run();
+    return compiler.Run();
 }
 
 int main(int argc, char* argv[])
 {
-	std::string source = "";
+    bool compileRes = false;
 
-	if (!ReadFile(argv[1], source))
-	{
-		printf("[Error]: Can't read file!\n");
-		return 0;
-	}
+    std::string source = "";
 
-	SubsDefNode* mainNode = Parse(source);
+    if (!ReadFile(argv[1], source))
+    {
+	    printf("[Error]: Can't read file!\n");
+	    return 0;
+    }
 
-	if (mainNode != NULL)
-		Compile(mainNode, argv[2]);
+    SubsDefNode* mainNode = Parse(source);
 
-	return 0;
+    if (mainNode != NULL)
+	compileRes = Compile(mainNode, argv[2]);
+
+    return compileRes == true ? 0 : 1;
 }

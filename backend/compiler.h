@@ -10,23 +10,22 @@
 #include "variable.h"
 #include "utility.h"
 #include "code_generator.h"
+#include "msg.h"
 
 namespace L3Compiler
 {
-	#define CHECK_TRUE(param) if (!(param)) return false;
-	#define CHECK_TRUE_OUTPUT(param, errorStr) if (!(param)) { printf("%s\n", errorStr); return false;}
-	#define PROCESS_ERROR(str) {printf("[Error]: %s\n", str); return false;}
+	#define CHECK_SUCCESS(param) if (!(param)) return false;
+	#define CHECK_SUCCESS_PRINT_ERR(param, errId) {if (!(param)) PRINT_ERR_RETURN(errId)}
+	#define PRINT_ERR_RETURN(errId) {printf("[Error]: %s\n", Msg::ErrorsStrList[errId]); return false;}
 
 	class Compiler
 	{
 	public :
         Compiler(SubsDefNode* program, const char* outputFilePath);
         ~Compiler();
-		void Run();
+		bool Run();
 
-	private :
-		static const int ErrorStrCnt = 1;
-		static const char* ErrorsStrList[ErrorStrCnt];
+	private :		
 
 		SubsDefNode* _program;
         CodeGenerator* _codeGen;
@@ -39,31 +38,32 @@ namespace L3Compiler
 		std::set<int> _allScopeTmpVars;
 		std::set<int> _freeScopeTmpVars;
 
-        const char* GetSubName(SubDefNode* node);
+		const char* GetSubName(SubDefNode* node);
         std::string GetString(TypeNode* type);
         void EnterTheBlock();
         bool IsExistsMainFunc();
 		bool StaticTest();
         bool FindVariable(const char* ident, Variable& var);
 
-        bool ProcessSubsDef();
-        bool ProcessSubDefNode(SubDefNode* node);
-        bool ProcessFuncDef(FuncDefNode* node);
-        bool ProcessProcDef(ProcDefNode* node);
-        bool ProcessSignature(SigNode* node);
-        bool ProcessParamsDef(ParamsDefNode* node);
-        bool ProcessVarDefs(VarsDefNode* node);
-        bool ProcessStatements(StatementsNode* node);
-        bool ProcessAssign(AssignNode* node);
-        bool ProcessFuncCall(FuncCallNode* node);
-        bool ProcessIfStatement(IfNode* node);
-        bool ProcessWhileStatement(WhileDoNode* node);
-        bool ProcessForStatement(ForNode* node);
-        bool ProcessRepeatStatement(RepeatNode* node);
-        bool ProcessCheckStatement(CheckNode* node);
-        bool ProcessNewArrAssign(Variable var, NewArrNode* node);
-        bool ProcessExprAssign(Variable var, ExprNode* node);
-		bool ProcessExpr(ExprNode* node);
+		bool SubsDefProcess();
+		bool SubDefNodeProcess(SubDefNode* node);
+		bool FuncDefProcess(FuncDefNode* node);
+		bool ProcDefProcess(ProcDefNode* node);
+		bool SignatureProcess(SigNode* node);
+		bool ParamsDefProcess(ParamsDefNode* node);
+		bool VarDefsProcess(VarsDefNode* node);
+		bool StatementsProcess(StatementsNode* node);
+		bool AssignProcess(AssignNode* node);
+		bool FuncCallProcess(FuncCallNode* node);
+		bool IfStatementProcess(IfNode* node);
+		bool WhileStatementProcess(WhileDoNode* node);
+		bool ForStatementProcess(ForNode* node);
+		bool RepeatStatementProcess(RepeatNode* node);
+		bool CheckStatementProcess(CheckNode* node);
+		bool NewArrAssignProcess(Variable var, NewArrNode* node);
+		bool ExprAssignProcess(Variable var, ExprNode* node);
+		bool ExprProcess(ExprNode* node);
+		bool PrintStatementProcess(PrintNode* node);
 
 		bool IsIntType(const TypeNode& type);
 		bool IsCharType(const TypeNode& type);

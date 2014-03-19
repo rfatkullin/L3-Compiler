@@ -116,7 +116,7 @@ DEC_NUM 		{DIGIT}+
 bool		return BOOL_TYPE;
 char  		return CHAR_TYPE;
 check 		return CHECK;
-do			return DO;
+do		return DO;
 else 		return ELSE;
 elseif  	return ELSEIF;
 endfor 		return ENDFOR;
@@ -124,20 +124,21 @@ endfunc 	return ENDFUNC;
 endif  		return ENDIF;
 endproc 	return ENDPROC;
 endwhile 	return ENDWHILE;
-ff 			return FF;
+ff 		return FF;
 for 		return FOR;
 func 		return FUNC;
-if 			return IF;
+if 		return IF;
 int 		return INT_TYPE;
 nil 		return NIL;
 proc 		return PROC;
 repeat 		return REPEAT;
 step 		return STEP;
 then 		return THEN;
-to 			return TO;
-tt 			return TT;
+to 		return TO;
+tt 		return TT;
 until 		return UNTIL;
 while 		return WHILE;
+print		return PRINT;
 
 {IDENT}		{
 				yylval->m_ident = new char[ strlen( yytext ) + 1 ];

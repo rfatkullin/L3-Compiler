@@ -289,6 +289,21 @@ void CodeGenerator :: GtrEqOperator()
 	_ilCode += TwoTab + "ceq\n";
 }
 
+void CodeGenerator :: PrintInt()
+{
+	_ilCode += TwoTab + "call void [mscorlib]System.Console::WriteLine(int32)\n";
+}
+
+void CodeGenerator :: PrintChar()
+{
+	_ilCode += TwoTab + "call void [mscorlib]System.Console::WriteLine(char)\n";
+}
+
+void CodeGenerator :: PrintBool()
+{
+	_ilCode += TwoTab + "call void [mscorlib]System.Console::WriteLine(bool)\n";
+}
+
 std::string CodeGenerator :: TypeToString(TypeNode* node)
 {
     std::string str = "";

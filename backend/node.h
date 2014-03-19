@@ -21,6 +21,7 @@ class WhileDoNode;
 class ForNode;
 class RepeatNode;
 class CheckNode;
+class PrintNode;
 class IdentsNode;
 class StatementNode;
 class WhileDoNode;
@@ -170,6 +171,7 @@ public :
 		ForNode*		for_statement;
 		RepeatNode*		repeat;
 		CheckNode*		check;
+		PrintNode*		print;
 	};
 };
 
@@ -178,6 +180,16 @@ class CheckNode
 public :
 	CheckNode( ExprNode* new_expr )
 		:	expr( new_expr )
+		{}
+
+	ExprNode* expr;
+};
+
+class PrintNode
+{
+public :
+	PrintNode(ExprNode* toPrintExpr)
+		: expr(toPrintExpr)
 		{}
 
 	ExprNode* expr;

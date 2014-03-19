@@ -4,8 +4,6 @@
 
 namespace L3Compiler
 {		
-	const char* Compiler::ErrorsStrList[ErrorStrCnt] = {"hello"};
-
     Compiler :: Compiler(SubsDefNode* program, const char* outputFilePath)
         : 	_program(program)
 	{
@@ -17,15 +15,15 @@ namespace L3Compiler
         delete _codeGen;
     }
 
-	void Compiler :: Run()
+	bool Compiler :: Run()
 	{
 		if (!StaticTest())
 		{
 			printf("Static test failed!\n");
-			return;
+			return false;
 		}		
 
-		ProcessSubsDef();
+		return SubsDefProcess();
 	}	
 
 	bool Compiler :: StaticTest()
@@ -76,28 +74,28 @@ namespace L3Compiler
 		}
 	}
 
-	bool Compiler :: ProcessSubsDef()
+	bool Compiler :: SubsDefProcess()
 	{
 		SubsDefNode* node = _program;
 
 		while (node)
 		{
-			CHECK_TRUE(ProcessSubDefNode(node->def));
+			CHECK_SUCCESS(SubDefNodeProcess(node->def));
 			node = node->tail;
 		};
 
 		return true;
 	}
 
-	bool Compiler :: ProcessSubDefNode(SubDefNode* node)
-    {
+	bool Compiler :: SubDefNodeProcess(SubDefNode* node)
+	{
 		switch (node->tag)
 		{
 			case FUNC :
-				CHECK_TRUE(ProcessFuncDef(node->func));
+				CHECK_SUCCESS(FuncDefProcess(node->func));
 				break;
 			case PROC :
-				CHECK_TRUE(ProcessProcDef(node->proc));
+				CHECK_SUCCESS(ProcDefProcess(node->proc));
 				break;
 			default :
 				printf("Unexpected structure with tag = %d!\n", node->tag);
@@ -108,45 +106,45 @@ namespace L3Compiler
 		return true;
 	}
 
-	bool Compiler :: ProcessFuncDef(FuncDefNode* node)
+	bool Compiler :: FuncDefProcess(FuncDefNode* node)
 	{
         EnterTheBlock();
 
         _codeGen->SubDef(node->type);
 
-        CHECK_TRUE(ProcessSignature(node->signature));
+		CHECK_SUCCESS(SignatureProcess(node->signature));
 
         _codeGen->BlockStart();
 
-        CHECK_TRUE(ProcessStatements(node->statements));
+		CHECK_SUCCESS(StatementsProcess(node->statements));
 
         _codeGen->BlockEnd(_scopeVars);
 
 		return true;
 	}
 
-	bool Compiler :: ProcessProcDef(ProcDefNode* node)
+	bool Compiler :: ProcDefProcess(ProcDefNode* node)
 	{
         EnterTheBlock();
 
         _codeGen->SubDef();
 
-        CHECK_TRUE(ProcessSignature(node->signature));
+		CHECK_SUCCESS(SignatureProcess(node->signature));
 
         _codeGen->BlockStart();
 
-        CHECK_TRUE(ProcessStatements(node->statements));
+		CHECK_SUCCESS(StatementsProcess(node->statements));
 
         _codeGen->BlockEnd(_scopeVars);
 
 		return true;
 	}
 
-	bool Compiler :: ProcessSignature(SigNode* node)
+	bool Compiler :: SignatureProcess(SigNode* node)
 	{
         _codeGen->SubName(node->ident);
 
-        CHECK_TRUE(ProcessParamsDef(node->params_def));
+		CHECK_SUCCESS(ParamsDefProcess(node->params_def));
 
 		return true;
 	}
@@ -168,7 +166,7 @@ namespace L3Compiler
 		_freeScopeTmpVars.clear();
     }
 
-	bool Compiler :: ProcessParamsDef(ParamsDefNode* params)
+	bool Compiler :: ParamsDefProcess(ParamsDefNode* params)
 	{
         _codeGen->SignatureStart();
 
@@ -201,7 +199,7 @@ namespace L3Compiler
 		return true;
 	}
 
-    bool Compiler :: ProcessStatements(StatementsNode* node)
+	bool Compiler :: StatementsProcess(StatementsNode* node)
 	{
         while (node)
 		{
@@ -210,35 +208,39 @@ namespace L3Compiler
             switch (stm->tag)
 			{
 				case VARS_DEF :
-                    CHECK_TRUE(ProcessVarDefs(stm->vars_def));
+					CHECK_SUCCESS(VarDefsProcess(stm->vars_def));
 					break;
 
 				case ASSIGN :
-                    CHECK_TRUE(ProcessAssign(stm->assign));
+					CHECK_SUCCESS(AssignProcess(stm->assign));
 					break;
 
 				case FUNC_CALL :
-                    CHECK_TRUE(ProcessFuncCall(stm->func_call));
+					CHECK_SUCCESS(FuncCallProcess(stm->func_call));
 					break;
 
 				case IF :
-                    CHECK_TRUE(ProcessIfStatement(stm->if_statement));
+					CHECK_SUCCESS(IfStatementProcess(stm->if_statement));
 					break;
 
 				case WHILE :
-                    CHECK_TRUE(ProcessWhileStatement(stm->while_do));
+					CHECK_SUCCESS(WhileStatementProcess(stm->while_do));
 					break;
 
 				case FOR :
-                    CHECK_TRUE(ProcessForStatement(stm->for_statement));
+					CHECK_SUCCESS(ForStatementProcess(stm->for_statement));
 					break;
 
 				case REPEAT :
-                    CHECK_TRUE(ProcessRepeatStatement(stm->repeat));
+					CHECK_SUCCESS(RepeatStatementProcess(stm->repeat));
 					break;
 
 				case CHECK :
-                    CHECK_TRUE(ProcessCheckStatement(stm->check));
+					CHECK_SUCCESS(CheckStatementProcess(stm->check));
+					break;
+
+				case PRINT :
+					CHECK_SUCCESS(PrintStatementProcess(stm->print));
 					break;
 
 				default :
@@ -252,7 +254,7 @@ namespace L3Compiler
 		return true;
 	}
 
-	bool Compiler :: ProcessVarDefs(VarsDefNode* node)
+	bool Compiler :: VarDefsProcess(VarsDefNode* node)
 	{
 		VarsNode* vars = node->vars;
 
@@ -274,11 +276,11 @@ namespace L3Compiler
 					break;
 
 				case EXPR :
-					CHECK_TRUE(ProcessExprAssign(localVariable, vars->var->expr));
+					CHECK_SUCCESS(ExprAssignProcess(localVariable, vars->var->expr));
 					break;
 
 				case NEW_ARR :
-                    CHECK_TRUE(ProcessNewArrAssign(localVariable, vars->var->new_arr));
+					CHECK_SUCCESS(NewArrAssignProcess(localVariable, vars->var->new_arr));
 					break;
 
 				default :
@@ -292,9 +294,9 @@ namespace L3Compiler
 		return true;
 	}
 
-	bool Compiler :: ProcessExprAssign(Variable var, ExprNode* exprNode)
+	bool Compiler :: ExprAssignProcess(Variable var, ExprNode* exprNode)
     {
-		CHECK_TRUE(ProcessExpr(exprNode));
+		CHECK_SUCCESS(ExprProcess(exprNode));
 
 		if (!TypeMatch(_stackValuesTypes.top(), *var._type))
         {
@@ -308,7 +310,7 @@ namespace L3Compiler
         return true;
     }
 
-	bool Compiler :: ProcessExpr(ExprNode* node)
+	bool Compiler :: ExprProcess(ExprNode* node)
 	{		
 		TypeNode type1(INT_TYPE, 0);
 		Variable exprVar;
@@ -345,24 +347,24 @@ namespace L3Compiler
 			break;
 
 		case IDENT :
-			CHECK_TRUE(FindVariable(node->un.ident, exprVar));
+			CHECK_SUCCESS_PRINT_ERR(FindVariable(node->un.ident, exprVar), Msg::VariableNotDiclared);
 			_stackValuesTypes.push(*exprVar._type);
 			_codeGen->LoadVariable(exprVar);
 			break;
 
 		case EXCL :
-			CHECK_TRUE(ProcessExpr(node->un.expr));
-			CHECK_TRUE(IsBoolType(_stackValuesTypes.top()));
+			CHECK_SUCCESS(ExprProcess(node->un.expr));
+			CHECK_SUCCESS(IsBoolType(_stackValuesTypes.top()));
 			_codeGen->NotOperator();
 			break;
 
 		case UMINUS :
-			CHECK_TRUE(ProcessExpr(node->un.expr));
+			CHECK_SUCCESS(ExprProcess(node->un.expr));
 
 			type1 = _stackValuesTypes.top();
 			_stackValuesTypes.pop();
 
-			CHECK_TRUE(IsBoolType(type1) || IsIntType(type1));
+			CHECK_SUCCESS(IsBoolType(type1) || IsIntType(type1));
 
 			_codeGen->NegOperator();
 			_stackValuesTypes.push(TypeNode(INT_TYPE, 0));
@@ -380,8 +382,8 @@ namespace L3Compiler
 		if (isUnary)
 			return true;
 
-		CHECK_TRUE(ProcessExpr(node->bin.left_expr));
-		CHECK_TRUE(ProcessExpr(node->bin.right_expr));
+		CHECK_SUCCESS(ExprProcess(node->bin.left_expr));
+		CHECK_SUCCESS(ExprProcess(node->bin.right_expr));
 
 		TypeNode type2 = _stackValuesTypes.top();
 		_stackValuesTypes.pop();
@@ -548,74 +550,98 @@ namespace L3Compiler
 		return true;
 	}
 
-    bool Compiler :: ProcessNewArrAssign(Variable var, NewArrNode* node)
+	bool Compiler :: NewArrAssignProcess(Variable var, NewArrNode* node)
     {
         return true;
     }
 
 
-    bool Compiler :: ProcessAssign(AssignNode* node)
+	bool Compiler :: AssignProcess(AssignNode* node)
     {        
 		std::map<const char*, Variable, StrCmp>::iterator varIt;
-		CHECK_TRUE(ProcessExpr(node->expr));
+
+		CHECK_SUCCESS(ExprProcess(node->expr));
 
 		switch (node->left->tag)
 		{
 		case IDENT :
-				varIt = _scopeVars.find(node->left->ident);
+			varIt = _scopeVars.find(node->left->ident);
 
-				if (varIt == _scopeVars.end())
-				{
-					printf("[Error]: Variable not declared in this scope!\n");
-					return false;
-				}
+			if (varIt == _scopeVars.end())
+				PRINT_ERR_RETURN(Msg::VariableNotDiclared);
 
-				if (!TypeMatch(*varIt->second._type, _stackValuesTypes.top()))
-				{
-					printf("[Error]: type mismatch!\n");
-					return false;
-				}
+			if (!TypeMatch(*varIt->second._type, _stackValuesTypes.top()))
+				PRINT_ERR_RETURN(Msg::TypeMismatch);
 
-				break;
+			_stackValuesTypes.pop();
+			_codeGen->SaveFromStack(varIt->second);
+			break;
+
 		case ARR_EL :
+			//TO DO Maybe:)
 			break;
 
 		default :
-			printf("[Error]: Unexpected construction!\n");
-			return false;
+			PRINT_ERR_RETURN(Msg::UnexpectedOperator);
+			break;
 		}
 
-		//if (TypeMatch(_stackValuesTypes.top(), node->left->)
-
         return true;
     }
 
-    bool Compiler :: ProcessFuncCall(FuncCallNode* node)
+	bool Compiler :: PrintStatementProcess(PrintNode* node)
+	{
+		CHECK_SUCCESS(ExprProcess(node->expr));
+
+		TypeNode argType = _stackValuesTypes.top();
+
+		//Пока выводим только int, bool,char
+
+		if (IsIntType(argType))
+		{
+			_codeGen->PrintInt();
+		}
+		else if (IsCharType(argType))
+		{
+			_codeGen->PrintChar();
+		}
+		else if (IsBoolType(argType))
+		{
+			_codeGen->PrintBool();
+		}
+		else
+			PRINT_ERR_RETURN(Msg::PrintTypeMismatch);
+
+		_stackValuesTypes.pop();
+		return true;
+	}
+
+	bool Compiler :: FuncCallProcess(FuncCallNode* node)
     {
         return true;
     }
 
-    bool Compiler :: ProcessIfStatement(IfNode* node)
+	bool Compiler :: IfStatementProcess(IfNode* node)
     {
         return true;
     }
 
-    bool Compiler :: ProcessWhileStatement(WhileDoNode* node)
+	bool Compiler :: WhileStatementProcess(WhileDoNode* node)
     {
         return true;
     }
 
-    bool Compiler :: ProcessForStatement(ForNode* node)
+	bool Compiler :: ForStatementProcess(ForNode* node)
     {
         return true;
     }
 
-    bool Compiler :: ProcessRepeatStatement(RepeatNode* node)
+	bool Compiler :: RepeatStatementProcess(RepeatNode* node)
     {
         return true;
     }
 
-    bool Compiler :: ProcessCheckStatement(CheckNode* node)
+	bool Compiler :: CheckStatementProcess(CheckNode* node)
     {
         return true;
     }

@@ -51,6 +51,10 @@ public :
 	void LssEqOperator();
 	void GtrEqOperator();
 
+	void PrintInt();
+	void PrintChar();
+	void PrintBool();
+
     static std::string TypeToString(TypeNode* node);
     static std::string IntToStr(int num);
 
