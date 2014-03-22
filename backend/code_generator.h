@@ -58,8 +58,10 @@ public :
 	void SetLabel(int labelNum);
 	void SetLabel(std::string label);
 	void SetJumpTo(int toLabelNum);
-	int SetCondJumpToNewLabel(bool onTrue);
-	void CondJumpToLabel(int labelNum, bool onTrue);
+	void SetJumpTo(std::string label);
+	int  SetJumpToNewLabel();
+	int  SetCondJumpToNewLabel(bool onTrue);
+	void SetCondJumpToLabel(int labelNum, bool onTrue);
 	int SetNewLabel();
 
 	void ExitOn(bool cond);
@@ -80,7 +82,7 @@ private :
 	std::string GetNewLabel(int* labelNum);
 	std::string GetLabelNameByNum(int labelNum);
 
-	void CondJumpToLabel(std::string label, bool onTrue);
+	void SetCondJumpToLabel(std::string label, bool onTrue);
 
     FILE*       _output;
 

@@ -616,8 +616,51 @@ namespace L3Compiler
     }
 
 	bool Compiler :: IfStatementProcess(IfNode* node)
-    {
-        return true;
+	{
+		int ifEndLabelNum;
+		int next;
+
+		//if
+		CHECK_SUCCESS(ExprProcess(node->expr));
+		next = _codeGen->SetCondJumpToNewLabel(false);
+		CHECK_SUCCESS(StatementsProcess(node->statements));
+
+		if (node->suffix == NULL)
+			_codeGen->SetLabel(next);
+		else //elseif
+		{
+			ifEndLabelNum = _codeGen->SetJumpToNewLabel();
+
+			ElseIfNode* elseIfNode = node->suffix->else_if;
+			while (elseIfNode)
+			{
+				_codeGen->SetLabel(next);
+
+				CHECK_SUCCESS(ExprProcess(elseIfNode->expr));
+
+				if (elseIfNode->else_if != NULL || node->suffix->statements != NULL )
+					next = _codeGen->SetCondJumpToNewLabel(false);
+				else
+					_codeGen->SetJumpTo(ifEndLabelNum);
+
+				CHECK_SUCCESS(StatementsProcess(elseIfNode->statements));
+
+				_codeGen->SetJumpTo(ifEndLabelNum);
+
+				elseIfNode = elseIfNode->else_if;
+			}
+
+			//else
+			if (node->suffix->statements != NULL)
+			{
+				_codeGen->SetLabel(next);
+				CHECK_SUCCESS(StatementsProcess(node->suffix->statements));
+			}
+
+			_codeGen->SetLabel(ifEndLabelNum);
+		}
+
+		return true;
     }
 
 	bool Compiler :: WhileStatementProcess(WhileDoNode* node)
@@ -711,7 +754,7 @@ namespace L3Compiler
 
 		CHECK_SUCCESS(StatementsProcess(node->statements));
 		CHECK_SUCCESS(ExprProcess(node->expr));
-		_codeGen->CondJumpToLabel(loopBeginLabel, false);
+		_codeGen->SetCondJumpToLabel(loopBeginLabel, false);
 
         return true;
     }

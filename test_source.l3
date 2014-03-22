@@ -1,8 +1,20 @@
 proc main ()
-	a = 5 -> int;
+	a = 0 -> int;
 
-	check a == 5;
-
-	print a
+	if a == 0 then
+		print 0;
+	elseif a == 1 then
+		print 1;
+	elseif a == 2 then
+		print 2;
+	elseif a == 3 then
+		print 3;
+	elseif a == 4 then
+		print 4;
+	elseif a == 5 then
+		print 5;
+	else
+		print 6;
+	endif
 
 endproc

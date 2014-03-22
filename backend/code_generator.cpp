@@ -340,19 +340,19 @@ int CodeGenerator :: SetCondJumpToNewLabel(bool onTrue)
 {
 	int labelNum;	
 
-	CondJumpToLabel(GetNewLabel(&labelNum), onTrue);
+	SetCondJumpToLabel(GetNewLabel(&labelNum), onTrue);
 
 	return labelNum;
 }
 
-void CodeGenerator :: CondJumpToLabel(int labelNum, bool onTrue)
+void CodeGenerator :: SetCondJumpToLabel(int labelNum, bool onTrue)
 {
 	std::string label = GetLabelNameByNum(labelNum);
 
-	CondJumpToLabel(label, onTrue);
+	SetCondJumpToLabel(label, onTrue);
 }
 
-void CodeGenerator :: CondJumpToLabel(std::string label, bool onTrue)
+void CodeGenerator :: SetCondJumpToLabel(std::string label, bool onTrue)
 {
 	_ilCode += TwoTab;
 
@@ -375,7 +375,7 @@ void CodeGenerator :: ExitOn(bool cond)
 	int labelNum;
 	std::string label = GetNewLabel(&labelNum);
 
-	CondJumpToLabel(label, !cond);
+	SetCondJumpToLabel(label, !cond);
 
 	_ilCode += TwoTab + "ldc.i4.1\n";
 	_ilCode += TwoTab + "call void [mscorlib]System.Environment::Exit(int32)\n";
@@ -386,6 +386,21 @@ void CodeGenerator :: ExitOn(bool cond)
 void CodeGenerator :: SetJumpTo(int toLabelNum)
 {
 	_ilCode += TwoTab + "br " + GetLabelNameByNum(toLabelNum) + "\n";
+}
+
+void CodeGenerator :: SetJumpTo(std::string label)
+{
+	_ilCode += TwoTab + "br " + label + "\n";
+}
+
+int CodeGenerator :: SetJumpToNewLabel()
+{
+	int labelNum;
+	std::string label = GetNewLabel(&labelNum);
+
+	SetJumpTo(label);
+
+	return labelNum;
 }
 
 void CodeGenerator :: SetLabel(int labelNum)
