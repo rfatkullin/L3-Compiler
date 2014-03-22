@@ -52,6 +52,7 @@ namespace L3Compiler
 		bool SignatureProcess(SigNode* node);
 		bool ParamsDefProcess(ParamsDefNode* node);
 		bool VarDefsProcess(VarsDefNode* node);
+		bool VarDefProcess(VarNode* var, TypeNode* type);
 		bool StatementsProcess(StatementsNode* node);
 		bool AssignProcess(AssignNode* node);
 		bool FuncCallProcess(FuncCallNode* node);
@@ -70,9 +71,12 @@ namespace L3Compiler
 		bool IsBoolType(const TypeNode& type);
 		bool IsCharOrIntType(const TypeNode& type);
 
+		bool AddScopeVar(const char* ident, int id, TypeNode* type, bool isArg);
+		bool AddScopeVar(const char* ident, const Variable& var);
+
 		bool TypeMatch(const TypeNode& aT, const TypeNode& bT);
 
-		int GetFreeTmpVar(const TypeNode& type);
+		Variable GetFreeTmpVar(const TypeNode& type);
 		void RetrieveTmpVar(int num);
 	};
 

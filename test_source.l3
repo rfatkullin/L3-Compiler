@@ -1,9 +1,8 @@
 proc main ()
 	a = 0 -> int;
 
-	while a < 5 do
+	for a to 5 step 2 / 2 do
 		print a;
-		a = a + 1;
-	endwhile
+	endfor;
 
 endproc

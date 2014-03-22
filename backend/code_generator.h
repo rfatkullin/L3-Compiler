@@ -28,7 +28,7 @@ public :
     void LoadBoolConst(bool val);
     void LoadStr(const char* str);
     void LoadVariable(const Variable& var);
-    void SaveFromStack(const Variable& var);
+	void SaveFromStack(const Variable& var);
 
 	void LogAndOperator();
 	void LogOrOperator();

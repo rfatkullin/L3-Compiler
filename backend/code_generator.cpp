@@ -154,9 +154,9 @@ void CodeGenerator :: SaveFromStack(const Variable& var)
 	_ilCode += TwoTab;
 
     if (var._isArg)
-        _ilCode = _ilCode + "starg " + IntToStr(var._id) + "\n";
+		_ilCode = _ilCode + "starg " + IntToStr(var._id) + "\n";
     else
-        _ilCode = _ilCode + "stloc " + IntToStr(var._id) + "\n";
+		_ilCode = _ilCode + "stloc " + IntToStr(var._id) + "\n";
 
 }
 
@@ -246,33 +246,45 @@ void CodeGenerator :: NotOperator()
 void CodeGenerator :: Add()
 {
 	_ilCode += TwoTab + "add\n";
+
+	DecStackSize();
 }
 
 void CodeGenerator :: Sub()
 {
 	_ilCode += TwoTab + "sub\n";
+
+	DecStackSize();
 }
 
 void CodeGenerator :: EqOperator()
 {
 	_ilCode += TwoTab + "ceq\n";
+
+	DecStackSize();
 }
 
 void CodeGenerator :: NotEqOperator()
 {
 	_ilCode += TwoTab + "ceq\n";
 	_ilCode += TwoTab + "ldc.i4.0\n";
-	_ilCode += TwoTab + "ceq\n";
+	_ilCode += TwoTab + "ceq\n";	
+
+	DecStackSize();
 }
 
 void CodeGenerator :: LssOperator()
 {
 	_ilCode += TwoTab + "clt\n";
+
+	DecStackSize();
 }
 
 void CodeGenerator :: GtrOperator()
 {
 	_ilCode += TwoTab + "cgt\n";
+
+	DecStackSize();
 }
 
 void CodeGenerator :: LssEqOperator()
@@ -280,6 +292,8 @@ void CodeGenerator :: LssEqOperator()
 	_ilCode += TwoTab + "cgt\n";
 	_ilCode += TwoTab + "ldc.i4.0\n";
 	_ilCode += TwoTab + "ceq\n";
+
+	DecStackSize();
 }
 
 void CodeGenerator :: GtrEqOperator()
@@ -287,21 +301,29 @@ void CodeGenerator :: GtrEqOperator()
 	_ilCode += TwoTab + "clt\n";
 	_ilCode += TwoTab + "ldc.i4.0\n";
 	_ilCode += TwoTab + "ceq\n";
+
+	DecStackSize();
 }
 
 void CodeGenerator :: PrintInt()
 {
 	_ilCode += TwoTab + "call void [mscorlib]System.Console::WriteLine(int32)\n";
+
+	DecStackSize();
 }
 
 void CodeGenerator :: PrintChar()
 {
 	_ilCode += TwoTab + "call void [mscorlib]System.Console::WriteLine(char)\n";
+
+	DecStackSize();
 }
 
 void CodeGenerator :: PrintBool()
 {
 	_ilCode += TwoTab + "call void [mscorlib]System.Console::WriteLine(bool)\n";
+
+	DecStackSize();
 }
 
 int CodeGenerator :: SetNewLabel()
@@ -332,6 +354,8 @@ int CodeGenerator :: SetCondJumpToNewLabel(bool onTrue)
 
 	_ilCode += label + "\n";
 
+	DecStackSize();
+
 	return labelNum;
 }
 
@@ -342,7 +366,7 @@ void CodeGenerator :: SetJumpTo(int toLabelNum)
 
 void CodeGenerator :: SetLabel(int labelNum)
 {
-	_ilCode += TwoTab + GetLabelNameByNum(labelNum) + ": nop\n";
+	_ilCode += OneTab + GetLabelNameByNum(labelNum) + ": nop\n";
 }
 
 std::string CodeGenerator :: TypeToString(TypeNode* node)

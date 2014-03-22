@@ -250,29 +250,32 @@ public :
 class ForNode
 {
 public :
-	ForNode( ForFromParamNode* new_from_param, ForToParamNode* new_to_param, StatementsNode* new_statements )
-		:	from_param( new_from_param ),
-			to_param( new_to_param ),
-			statements( new_statements )
-		{}
+	ForNode(ForFromParamNode* fromParam, ForToParamNode* toParam, StatementsNode* statements)
+		:	_fromParam(fromParam),
+			_toParam(toParam),
+			_statements(statements)
+	{}
 
-	ForFromParamNode* 	from_param;
-	ForToParamNode* 	to_param;
-	StatementsNode*  	statements;
+	ForFromParamNode* 	_fromParam;
+	ForToParamNode*		_toParam;
+	StatementsNode*		_statements;
 };
 
 class ForFromParamNode
 {
 public :
-	ForFromParamNode( char* new_ident, ExprNode* new_expr, TypeNode* new_type )
-		: 	ident( new_ident ),
-			expr( new_expr ),
-			type( new_type )
-		{}
+	ForFromParamNode(int type)
+		:	_type(type)
+	{}
 
-	char* 		ident;
-	ExprNode* 	expr;
-	TypeNode* 	type;
+	int _type;
+
+	union
+	{
+		AssignNode* _assign;
+		VarsDefNode* _varsDef;
+
+	};
 };
 
 class ForToParamNode

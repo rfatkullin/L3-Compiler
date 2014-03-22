@@ -401,16 +401,18 @@ for : FOR for_from_param TO for_to_param DO statements ENDFOR
 		$$ = node;
 	};
 
-for_from_param : IDENT ASSIGN expr
-			{
-				ForFromParamNode* node = new ForFromParamNode( $1, $3, NULL );
-				$$ = node;
-			}
-	|  IDENT ASSIGN expr POINTER_METHOD type
-			{
-				ForFromParamNode* node = new ForFromParamNode( $1, $3, $5 );
-				$$ = node;
-			};
+for_from_param : vars_def
+				{
+				    ForFromParamNode* node = new ForFromParamNode(VARS_DEF);
+				    node->_varsDef = $1;
+				    $$ = node;
+				}
+		| assign
+				{
+				    ForFromParamNode* node = new ForFromParamNode(ASSIGN);
+				    node->_assign = $1;
+				    $$ = node;
+				}
 
 for_to_param : expr
 				{

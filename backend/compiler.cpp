@@ -177,13 +177,7 @@ namespace L3Compiler
 
 			while (idents)
 			{
-                if (_scopeVars.find(idents->ident) != _scopeVars.end())
-				{
-					printf("[Error]: conflicting in declaration function args!\n");
-					return false;
-				}
-
-                _scopeVars.insert(std::pair<char*, Variable>(idents->ident, Variable(_blockArgsCount++, params->params_sec->type, true)));
+				CHECK_SUCCESS(AddScopeVar(idents->ident, _blockArgsCount++, params->params_sec->type, true));
 
                 bool isContinious = ((idents->tail != NULL) || (params->tail != NULL));
                 _codeGen->Def(typeStr, isContinious);
@@ -260,35 +254,36 @@ namespace L3Compiler
 
 		while (vars)
 		{
-            Variable localVariable(_blockLocalsCount++, node->type, false);
-            if (_scopeVars.find(vars->var->ident) != _scopeVars.end())
-			{
-				printf("[Error]: conflicting in declaration function locals!\n");
-				return false;
-			}
-
-            _scopeVars.insert(std::pair<char*, Variable>(vars->var->ident, localVariable));
-
-			switch (vars->var->tag)
-			{
-				case IDENT :
-					//Nothing to do - only add to locals map
-					break;
-
-				case EXPR :
-					CHECK_SUCCESS(ExprAssignProcess(localVariable, vars->var->expr));
-					break;
-
-				case NEW_ARR :
-					CHECK_SUCCESS(NewArrAssignProcess(localVariable, vars->var->new_arr));
-					break;
-
-				default :
-					printf("Expected identificator/expr/new arr!\n");
-					return false;
-			}
-
+			CHECK_SUCCESS(VarDefProcess(node->vars->var, node->type));
 			vars = vars->tail;
+		}
+
+		return true;
+	}
+
+	bool Compiler :: VarDefProcess(VarNode* node, TypeNode* type)
+	{
+		Variable var(_blockLocalsCount++, type, false);
+
+		CHECK_SUCCESS(AddScopeVar(node->ident, var));
+
+		switch (node->tag)
+		{
+			case IDENT :
+				//Nothing to do - only add to locals map
+				break;
+
+			case EXPR :
+				CHECK_SUCCESS(ExprAssignProcess(var, node->expr));
+				break;
+
+			case NEW_ARR :
+				CHECK_SUCCESS(NewArrAssignProcess(var, node->new_arr));
+				break;
+
+			default :
+				PRINT_ERR_RETURN(Msg::IdentificatorExpected);
+				break;
 		}
 
 		return true;
@@ -313,7 +308,7 @@ namespace L3Compiler
 	bool Compiler :: ExprProcess(ExprNode* node)
 	{		
 		TypeNode type1(INT_TYPE, 0);
-		Variable exprVar;
+		Variable tmpVar;
 		bool isUnary = true;
 
 		while (node->op == UNARY)
@@ -347,9 +342,9 @@ namespace L3Compiler
 			break;
 
 		case IDENT :
-			CHECK_SUCCESS_PRINT_ERR(FindVariable(node->un.ident, exprVar), Msg::VariableNotDiclared);
-			_stackValuesTypes.push(*exprVar._type);
-			_codeGen->LoadVariable(exprVar);
+			CHECK_SUCCESS_PRINT_ERR(FindVariable(node->un.ident, tmpVar), Msg::VariableNotDiclared);
+			_stackValuesTypes.push(*tmpVar._type);
+			_codeGen->LoadVariable(tmpVar);
 			break;
 
 		case EXCL :
@@ -387,8 +382,7 @@ namespace L3Compiler
 
 		TypeNode type2 = _stackValuesTypes.top();
 		_stackValuesTypes.pop();
-		type1 = _stackValuesTypes.top();
-		int tmpLocVarInd = -1;
+		type1 = _stackValuesTypes.top();		
 
 		switch (node->op)
 		{
@@ -531,9 +525,9 @@ namespace L3Compiler
 					_codeGen->ModOperator();
 					break;
 				case CAP :
-					tmpLocVarInd = GetFreeTmpVar(TypeNode(INT_TYPE, 0));
-					_codeGen->PowOperator(tmpLocVarInd);
-					RetrieveTmpVar(tmpLocVarInd);
+					tmpVar = GetFreeTmpVar(TypeNode(INT_TYPE, 0));
+					_codeGen->PowOperator(tmpVar._id);
+					RetrieveTmpVar(tmpVar._id);
 					break;
 
 				default :
@@ -643,9 +637,73 @@ namespace L3Compiler
     }
 
 	bool Compiler :: ForStatementProcess(ForNode* node)
-    {
+	{
+		const char* forLoopVarName = NULL;
+
+		if (node->_fromParam->_type == ASSIGN)
+		{
+			CHECK_SUCCESS(AssignProcess(node->_fromParam->_assign));
+			forLoopVarName = node->_fromParam->_assign->left->ident;
+		}
+		else
+		{
+			VarsDefNode* varsDef = node->_fromParam->_varsDef;
+			CHECK_SUCCESS_PRINT_ERR(varsDef->vars->tail == NULL, Msg::ForLoopDefOnlyOneVar);
+			CHECK_SUCCESS_PRINT_ERR(IsIntType(*varsDef->type) || IsCharType(*varsDef->type), Msg::ForLoopVariableMustBeIntOrChar);
+			CHECK_SUCCESS(VarDefsProcess(varsDef));
+			forLoopVarName = varsDef->vars->var->ident;
+		}
+
+		Variable counterVar;
+		CHECK_SUCCESS(FindVariable(forLoopVarName, counterVar));
+
+		Variable toExprVar = GetFreeTmpVar(*counterVar._type);
+		Variable stepExprVar = GetFreeTmpVar(TypeNode(INT_TYPE, 0));
+
+		CHECK_SUCCESS(ExprProcess(node->_toParam->to));
+		_codeGen->SaveFromStack(toExprVar);
+
+		CHECK_SUCCESS(ExprProcess(node->_toParam->step));
+		_codeGen->SaveFromStack(stepExprVar);
+
+		int forLoopCondLabel =_codeGen->SetNewLabel();
+
+		_codeGen->LoadVariable(counterVar);
+		_codeGen->LoadVariable(toExprVar);
+		_codeGen->GtrOperator();
+		int afterLoopLabelNum =_codeGen->SetCondJumpToNewLabel(true);
+
+		CHECK_SUCCESS(StatementsProcess(node->_statements));
+
+		_codeGen->LoadVariable(counterVar);
+		_codeGen->LoadVariable(stepExprVar);
+		_codeGen->Add();
+		_codeGen->SaveFromStack(counterVar);
+		_codeGen->SetJumpTo(forLoopCondLabel);
+		_codeGen->SetLabel(afterLoopLabelNum);
+
         return true;
     }
+
+	bool Compiler :: AddScopeVar(const char* ident, int id, TypeNode* type, bool isArg)
+	{
+		if (_scopeVars.find(ident) != _scopeVars.end())
+			PRINT_ERR_RETURN(Msg::DeclarationConflict);
+
+		_scopeVars.insert(std::pair<const char*, Variable>(ident, Variable(id, type, isArg)));
+
+		return true;
+	}
+
+	bool Compiler :: AddScopeVar(const char* ident, const Variable& var)
+	{
+		if (_scopeVars.find(ident) != _scopeVars.end())
+			PRINT_ERR_RETURN(Msg::DeclarationConflict);
+
+		_scopeVars.insert(std::pair<const char*, Variable>(ident, var));
+
+		return true;
+	}
 
 	bool Compiler :: RepeatStatementProcess(RepeatNode* node)
     {
@@ -667,7 +725,7 @@ namespace L3Compiler
 		return IsCharType(typeNode) || IsIntType(typeNode);
 	}
 
-    bool Compiler :: FindVariable(const char* ident, Variable& var)
+	bool Compiler :: FindVariable(const char* ident, Variable& var)
     {
         std::map<const char*, Variable, StrCmp>::iterator it = _scopeVars.find(ident);
 
@@ -694,21 +752,24 @@ namespace L3Compiler
 		return (type.type == BOOL_TYPE) && (type.dimen == 0);
 	}
 
-	int Compiler :: GetFreeTmpVar(const TypeNode& type)
+	Variable Compiler :: GetFreeTmpVar(const TypeNode& type)
 	{
 		for (std::set<int>::iterator it = _freeScopeTmpVars.begin(); it != _freeScopeTmpVars.end(); ++it)
 		{
 			if (TypeMatch(*_scopeTmpVars[*it]._type, type))
 			{
 				_freeScopeTmpVars.erase(it);
-				return *it;
+				return _scopeTmpVars[*it];
 			}
 		}
 
-		_scopeTmpVars.insert(std::pair<int, Variable>(_blockLocalsCount, Variable(_blockLocalsCount, new TypeNode(type), false)));
-		_allScopeTmpVars.insert(_blockLocalsCount);
+		Variable var(_blockLocalsCount, new TypeNode(type), false);
+		std::string varName = "^^^" + CodeGenerator::IntToStr(_blockLocalsCount) + "^^^";
+		_scopeTmpVars.insert(std::pair<int, Variable>(_blockLocalsCount, var));
+		_scopeVars.insert(std::pair<const char*, Variable>(varName.c_str(), var));
+		_allScopeTmpVars.insert(_blockLocalsCount++);
 
-		return _blockLocalsCount++;
+		return var;
 	}
 
 	void Compiler :: RetrieveTmpVar(int num)
