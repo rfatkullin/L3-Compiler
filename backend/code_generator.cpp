@@ -12,7 +12,7 @@ CodeGenerator :: CodeGenerator(const char* outputFilePath)
     _output = fopen(outputFilePath, "w");
 
     fprintf(_output, ".assembly AzazaAssembly {}\n");
-    fprintf(_output, ".assembly extern mscorlib {}\n\n");
+	fprintf(_output, ".assembly extern mscorlib {}\n\n");
 
     Reset();
 }
@@ -338,9 +338,22 @@ int CodeGenerator :: SetNewLabel()
 
 int CodeGenerator :: SetCondJumpToNewLabel(bool onTrue)
 {
-	int labelNum;
-	std::string label = GetNewLabel(&labelNum);
+	int labelNum;	
 
+	CondJumpToLabel(GetNewLabel(&labelNum), onTrue);
+
+	return labelNum;
+}
+
+void CodeGenerator :: CondJumpToLabel(int labelNum, bool onTrue)
+{
+	std::string label = GetLabelNameByNum(labelNum);
+
+	CondJumpToLabel(label, onTrue);
+}
+
+void CodeGenerator :: CondJumpToLabel(std::string label, bool onTrue)
+{
 	_ilCode += TwoTab;
 
 	if (onTrue)
@@ -355,8 +368,19 @@ int CodeGenerator :: SetCondJumpToNewLabel(bool onTrue)
 	_ilCode += label + "\n";
 
 	DecStackSize();
+}
 
-	return labelNum;
+void CodeGenerator :: ExitOn(bool cond)
+{
+	int labelNum;
+	std::string label = GetNewLabel(&labelNum);
+
+	CondJumpToLabel(label, !cond);
+
+	_ilCode += TwoTab + "ldc.i4.1\n";
+	_ilCode += TwoTab + "call void [mscorlib]System.Environment::Exit(int32)\n";
+
+	SetLabel(label);
 }
 
 void CodeGenerator :: SetJumpTo(int toLabelNum)
@@ -367,6 +391,11 @@ void CodeGenerator :: SetJumpTo(int toLabelNum)
 void CodeGenerator :: SetLabel(int labelNum)
 {
 	_ilCode += OneTab + GetLabelNameByNum(labelNum) + ": nop\n";
+}
+
+void CodeGenerator :: SetLabel(std::string label)
+{
+	_ilCode += OneTab + label + ": nop\n";
 }
 
 std::string CodeGenerator :: TypeToString(TypeNode* node)

@@ -666,12 +666,12 @@ namespace L3Compiler
 		CHECK_SUCCESS(ExprProcess(node->_toParam->step));
 		_codeGen->SaveFromStack(stepExprVar);
 
-		int forLoopCondLabel =_codeGen->SetNewLabel();
+		int loopBeginCondLabel =_codeGen->SetNewLabel();
 
 		_codeGen->LoadVariable(counterVar);
 		_codeGen->LoadVariable(toExprVar);
 		_codeGen->GtrOperator();
-		int afterLoopLabelNum =_codeGen->SetCondJumpToNewLabel(true);
+		int LoopEndLabelNum =_codeGen->SetCondJumpToNewLabel(true);
 
 		CHECK_SUCCESS(StatementsProcess(node->_statements));
 
@@ -679,8 +679,8 @@ namespace L3Compiler
 		_codeGen->LoadVariable(stepExprVar);
 		_codeGen->Add();
 		_codeGen->SaveFromStack(counterVar);
-		_codeGen->SetJumpTo(forLoopCondLabel);
-		_codeGen->SetLabel(afterLoopLabelNum);
+		_codeGen->SetJumpTo(loopBeginCondLabel);
+		_codeGen->SetLabel(LoopEndLabelNum);
 
         return true;
     }
@@ -707,11 +707,21 @@ namespace L3Compiler
 
 	bool Compiler :: RepeatStatementProcess(RepeatNode* node)
     {
+		int loopBeginLabel =_codeGen->SetNewLabel();
+
+		CHECK_SUCCESS(StatementsProcess(node->statements));
+		CHECK_SUCCESS(ExprProcess(node->expr));
+		_codeGen->CondJumpToLabel(loopBeginLabel, false);
+
         return true;
     }
 
 	bool Compiler :: CheckStatementProcess(CheckNode* node)
     {
+		CHECK_SUCCESS(ExprProcess(node->expr));
+
+		_codeGen->ExitOn(false);
+
         return true;
     }
 

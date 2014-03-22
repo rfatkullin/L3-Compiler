@@ -56,9 +56,13 @@ public :
 	void PrintBool();
 
 	void SetLabel(int labelNum);
+	void SetLabel(std::string label);
 	void SetJumpTo(int toLabelNum);
 	int SetCondJumpToNewLabel(bool onTrue);
+	void CondJumpToLabel(int labelNum, bool onTrue);
 	int SetNewLabel();
+
+	void ExitOn(bool cond);
 
     static std::string TypeToString(TypeNode* node);
     static std::string IntToStr(int num);
@@ -75,6 +79,8 @@ private :
 
 	std::string GetNewLabel(int* labelNum);
 	std::string GetLabelNameByNum(int labelNum);
+
+	void CondJumpToLabel(std::string label, bool onTrue);
 
     FILE*       _output;
 

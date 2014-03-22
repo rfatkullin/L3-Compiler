@@ -1,8 +1,8 @@
 proc main ()
-	a = 0 -> int;
+	a = 5 -> int;
 
-	for a to 5 step 2 / 2 do
-		print a;
-	endfor;
+	check a == 5;
+
+	print a
 
 endproc
