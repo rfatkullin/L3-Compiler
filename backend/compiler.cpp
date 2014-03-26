@@ -626,6 +626,9 @@ namespace L3Compiler
 	{
 		int ifEndLabelNum;
 		int next;
+		std::stack<TypeNode> beginStackTypes = _stackValuesTypes;
+
+		_codeGen->SaveStackDepth();
 
 		//if
 		CHECK_TRUE(ExprProcess(node->expr));
@@ -642,6 +645,8 @@ namespace L3Compiler
 			ElseIfNode* elseIfNode = node->suffix->else_if;
 			while (elseIfNode)
 			{
+				_stackValuesTypes = beginStackTypes;
+				_codeGen->RestoreStackDepth();
 				_codeGen->SetLabel(next);
 
 				CHECK_TRUE(ExprProcess(elseIfNode->expr));
@@ -663,6 +668,8 @@ namespace L3Compiler
 			//else
 			if (node->suffix->statements != NULL)
 			{
+				_stackValuesTypes = beginStackTypes;
+				_codeGen->RestoreStackDepth();
 				_codeGen->SetLabel(next);
 				CHECK_TRUE(StatementsProcess(node->suffix->statements));
 			}

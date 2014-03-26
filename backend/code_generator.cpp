@@ -177,6 +177,16 @@ void CodeGenerator :: DecStackSize()
     --_currStackDepth;
 }
 
+void CodeGenerator :: SaveStackDepth()
+{
+	_savedStackDepth = _currStackDepth;
+}
+
+void CodeGenerator :: RestoreStackDepth()
+{
+	_currStackDepth = _savedStackDepth;
+}
+
 void CodeGenerator :: LogAndOperator()
 {
 	std::string label = GetNewLabel(NULL);

@@ -71,6 +71,9 @@ public :
 
 	void ExitOn(bool cond);
 
+	void SaveStackDepth();
+	void RestoreStackDepth();
+
     static std::string TypeToString(TypeNode* node);
     static std::string IntToStr(int num);
 
@@ -95,6 +98,7 @@ private :
 
     FILE*       _output;
 
+	int			_savedStackDepth;
 	const char* _currSubName;
 	std::string _currSubSig;
 	std::string _currSubRetType;

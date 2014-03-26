@@ -3,6 +3,8 @@ func Op (a,b->int; op->char) -> int
 
 	if op == '+' then
 		Op = a + b;
+	elseif op == '-' then
+		Op = a - b;
 	else
 		Op = 0;
 	endif
