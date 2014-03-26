@@ -286,6 +286,9 @@ namespace L3Compiler
 
 		switch(node->op)
 		{
+		case EXPR :
+			CHECK_TRUE(ExprProcess(node->un.expr));
+			break;
 		case NUMBER :
 			_stackValuesTypes.push(TypeNode(INT_TYPE, 0));
 			_codeGen->LoadIntConst(node->un.num);
