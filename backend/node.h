@@ -1,6 +1,7 @@
 #ifndef _NODE_H_
 #define _NODE_H_
 
+#include <list>
 #include <string>
 #include <stdio.h>
 
@@ -10,8 +11,7 @@ class ProcDefNode;
 class SigNode;
 class TypeNode;
 class StatementsNode;
-class ParamsDefNode;
-class ParamSecNode;
+class ParamSeqNode;
 class ParamsDefNode;
 class VarsDefNode;
 class AssignNode;
@@ -53,79 +53,41 @@ class SubDefNode
 {
 public :
 
-	SubDefNode( int new_tag )
-		: tag( new_tag )
+	SubDefNode(int newTag, SigNode* newSig, TypeNode* newType, StatementsNode* newStatements)
+		: tag(newTag),
+		  signature(newSig),
+		  type(newType),
+		  statements(newStatements)
 	{}
 
-	int tag;
-
-	union
-	{
-		FuncDefNode* func;
-		ProcDefNode* proc;
-	};
-};
-
-class FuncDefNode
-{
-public :
-	FuncDefNode( SigNode* new_signature, TypeNode* new_type, StatementsNode* new_statements )
-		:	signature( new_signature ),
-			type( new_type ),
-			statements( new_statements )
-			{}
-
+	int				tag;
 	SigNode* 		signature;
 	TypeNode* 		type;
 	StatementsNode*	statements;
 };
 
-class ProcDefNode
+class ParamSeqNode
 {
 public :
-	ProcDefNode( SigNode* new_signature, StatementsNode* new_statements )
-		: 	signature( new_signature ),
-			statements( new_statements )
-			{}
-
-	SigNode* 		signature;
-	StatementsNode*	statements;
-};
-
-class SigNode
-{
-public :
-	SigNode( char* new_ident, ParamsDefNode* new_params_def )
-		: 	ident( new_ident ),
-			params_def( new_params_def )
-			{}
-
-	char* 			ident;
-	ParamsDefNode* 	params_def;
-};
-
-class ParamsDefNode
-{
-public :
-	ParamsDefNode( ParamSecNode* new_params_sec, ParamsDefNode* new_tail )
-		:	params_sec( new_params_sec ),
-			tail( new_tail )
-			{}
-
-	ParamSecNode* 	params_sec;
-	ParamsDefNode* 	tail;
-};
-
-class ParamSecNode
-{
-public :
-	ParamSecNode( IdentsNode* new_idents, TypeNode* new_type )
+	ParamSeqNode( IdentsNode* new_idents, TypeNode* new_type )
 		: 	idents( new_idents ),
 			type( new_type )
 			{}
 
 	IdentsNode* 	idents;
 	TypeNode* 		type;
+};
+
+class ParamsDefNode
+{
+public :
+	ParamsDefNode( ParamSeqNode* new_params_sec, ParamsDefNode* new_tail )
+		:	params_seq( new_params_sec ),
+			tail( new_tail )
+			{}
+
+	ParamSeqNode* 	params_seq;
+	ParamsDefNode* 	tail;
 };
 
 class IdentsNode
@@ -138,6 +100,41 @@ public :
 
 	char* 		ident;
 	IdentsNode* tail;
+};
+
+class SigNode
+{
+public :
+	typedef std::list<std::pair<const char*,TypeNode*> > SubParams;
+
+	SigNode( char* newFuncName, ParamsDefNode* newParamsDef )
+		: 	funcName( newFuncName )
+			{
+				params = new std::list<std::pair<const char*,TypeNode*> >();
+
+				ParamsDefNode* groups = newParamsDef;
+				ParamsDefNode* groupsTail = NULL;
+				while (groups)
+				{
+					ParamSeqNode* paramsSeq = groups->params_seq;
+					IdentsNode* idents = paramsSeq->idents;
+					IdentsNode* identsTail = NULL;
+
+					while (idents)
+					{
+						params->push_back(std::make_pair(idents->ident, paramsSeq->type));
+						identsTail = idents->tail;
+						delete idents;
+						idents = identsTail;
+					}
+					groupsTail = groups->tail;
+					delete groups;
+					groups = groupsTail;
+				}
+			}
+
+	char* funcName;
+	SubParams* params;
 };
 
 class StatementsNode
@@ -450,13 +447,13 @@ public :
 class FuncCallNode
 {
 public :
-	FuncCallNode( char* new_ident, IdentsNode* new_params )
-		: 	ident( new_ident ),
-			params( new_params )
+	FuncCallNode(char* newIdent, std::list<ExprNode*>* newParams)
+		: 	ident(newIdent),
+			params(newParams)
 		{}
 
-	char* 		ident;
-	IdentsNode* params;
+	char* ident;
+	std::list<ExprNode*>* params;
 };
 
 #endif

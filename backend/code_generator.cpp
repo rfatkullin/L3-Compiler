@@ -4,6 +4,9 @@
 #include "parser.tab.h"
 #include "code_generator.h"
 
+const std::string CodeGenerator::ilClassName = "DummyClass";
+const std::string CodeGenerator::ilAssemblyName = "DummyAssembly";
+
 const std::string CodeGenerator :: TwoTab = "\t\t";
 const std::string CodeGenerator :: OneTab = "\t";
 
@@ -11,10 +14,19 @@ CodeGenerator :: CodeGenerator(const char* outputFilePath)
 {
     _output = fopen(outputFilePath, "w");
 
-    fprintf(_output, ".assembly AzazaAssembly {}\n");
-	fprintf(_output, ".assembly extern mscorlib {}\n\n");
-
     Reset();
+}
+
+void CodeGenerator :: Start()
+{
+	fprintf(_output, ".assembly %s {}\n", ilAssemblyName.c_str());
+	fprintf(_output, ".assembly extern mscorlib {}\n\n");
+	fprintf(_output, ".class public %s.%s\n{\n", ilAssemblyName.c_str(), ilClassName.c_str());
+}
+
+void CodeGenerator :: End()
+{
+	fprintf(_output, "}\n");
 }
 
 CodeGenerator :: ~CodeGenerator()
@@ -25,49 +37,40 @@ CodeGenerator :: ~CodeGenerator()
 void CodeGenerator :: Reset()
 {
     _ilCode = "";
-    _maxStackDepth = -1;
+	_maxStackDepth  = 0;
     _currStackDepth = 0;
 	_currLabelNum   = 0;
     _isEntryPoint = false;
 }
 
-void CodeGenerator :: SubDef(TypeNode* returnType)
+void CodeGenerator :: SubSignatureStart(TypeNode* returnType)
 {
-    fprintf(_output, ".method static %s ", TypeToString(returnType).c_str());
+	Reset();
 
-    Reset();
+	_currSubRetType = TypeToString(returnType);
 }
 
-void CodeGenerator :: SubDef()
+void CodeGenerator :: SetSubName(const char* name)
 {
-    fprintf(_output, ".method static void ");
-}
-
-void CodeGenerator :: SubName(const char* name)
-{
-    fprintf(_output, "%s", name);
+	_currSubName = name;
+	_currSubSig = std::string(name) + "(";
 
     if (!strcmp(name, "main"))
         _isEntryPoint = true;
 }
 
-void CodeGenerator :: SignatureStart()
+void CodeGenerator :: SetSubParamDef(TypeNode* typeNode, bool isContinious)
 {
-    fprintf(_output, "(");
+	_currSubSig += TypeToString(typeNode) + (isContinious ? ", " : ")");
 }
 
-void CodeGenerator :: Def(const std::string& typeStr, bool isContinious)
+void CodeGenerator :: SubSignatureEnd()
 {
-    if (isContinious)
-        fprintf(_output, "%s, ", typeStr.c_str());
-    else
-        fprintf(_output, "%s", typeStr.c_str());
+	_subsFullName.insert(std::make_pair(_currSubName, _currSubRetType + " " + ilAssemblyName + "." + ilClassName + "::" + _currSubSig));
+
+	fprintf(_output, ".method static %s %s\n", _currSubRetType.c_str(), _currSubSig.c_str());
 }
 
-void CodeGenerator :: SignatureEnd()
-{
-    fprintf(_output, ")");
-}
 
 void CodeGenerator :: MarkAsEntryPoint()
 {
@@ -75,11 +78,11 @@ void CodeGenerator :: MarkAsEntryPoint()
 }
 
 void CodeGenerator :: BlockStart()
-{
+{	
     fprintf(_output, "{\n");
 }
 
-void CodeGenerator :: BlockEnd(const std::map<const char*, Variable, StrCmp>& scopeVariables)
+void CodeGenerator :: BlockEnd(const char* subName, const std::map<const char*, Variable, StrCmp>& scopeVariables, int localsCnt, bool isNeedRet)
 {
     if (_isEntryPoint)
 		fprintf(_output, "%s.entrypoint\n", TwoTab.c_str() );
@@ -87,8 +90,7 @@ void CodeGenerator :: BlockEnd(const std::map<const char*, Variable, StrCmp>& sc
 	fprintf(_output, "%s.maxstack %d\n", TwoTab.c_str(), _maxStackDepth);
 
 	std::string localsInit = TwoTab + ".locals init(";
-    int varIndex = 0;
-    int varsCnt = scopeVariables.size();
+    int varIndex = 0;	
     for (std::map<const char*, Variable, StrCmp>::const_iterator it = scopeVariables.begin(); it != scopeVariables.end(); ++it)
     {
         if (it->second._isArg)
@@ -97,17 +99,16 @@ void CodeGenerator :: BlockEnd(const std::map<const char*, Variable, StrCmp>& sc
         ++varIndex;
         localsInit += TypeToString(it->second._type);
 
-        if (varIndex < varsCnt)
+		if (varIndex < localsCnt)
             localsInit += ",";
-
     }
-    localsInit += ")\n\n";
+	localsInit += ")";
 
-    fprintf(_output, "%s\n", localsInit.c_str() );
+	fprintf(_output, "%s\n\n", localsInit.c_str() );
 
     fprintf(_output, "%s", _ilCode.c_str() );
 
-	fprintf(_output, "%sret\n}\n\n", TwoTab.c_str());
+	fprintf(_output, "%s%s\n} //%s\n\n", TwoTab.c_str(), isNeedRet ? "ret" : "", subName);
 }
 
 void CodeGenerator :: LoadIntConst(int num)
@@ -158,6 +159,12 @@ void CodeGenerator :: SaveFromStack(const Variable& var)
     else
 		_ilCode = _ilCode + "stloc " + IntToStr(var._id) + "\n";
 
+}
+
+void CodeGenerator :: PopFromStack()
+{
+	_ilCode += TwoTab + "pop\n";
+	DecStackSize();
 }
 
 void CodeGenerator :: IncStackSize()
@@ -326,6 +333,16 @@ void CodeGenerator :: PrintBool()
 	DecStackSize();
 }
 
+void CodeGenerator :: SetRet()
+{
+	_ilCode += TwoTab + "ret\n";
+}
+
+void CodeGenerator :: SetSubCall(const char* subName)
+{	
+	_ilCode += TwoTab + "call " + _subsFullName[subName] + "\n";
+}
+
 int CodeGenerator :: SetNewLabel()
 {
 	int labelNum;
@@ -419,15 +436,20 @@ std::string CodeGenerator :: TypeToString(TypeNode* node)
 
     switch (node->type)
     {
-        case INT_TYPE:
+		case INT_TYPE :
             str += "int32";
             break;
-        case BOOL_TYPE:
+		case BOOL_TYPE :
             str += "bool";
             break;
-        case CHAR_TYPE:
+		case CHAR_TYPE :
             str += "char";
             break;
+		case VOID_TYPE :
+			str += "void";
+			break;
+		default :
+			break;
     }
 
     for (int i = 0; i < node->dimen; ++i)

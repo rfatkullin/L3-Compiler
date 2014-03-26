@@ -2,6 +2,7 @@
 #define _COMPILER_H_
 
 #include <map>
+#include <list>
 #include <stack>
 #include <string>
 #include <set>
@@ -14,8 +15,9 @@
 
 namespace L3Compiler
 {
-	#define CHECK_SUCCESS(param) if (!(param)) return false;
-	#define CHECK_SUCCESS_PRINT_ERR(param, errId) {if (!(param)) PRINT_ERR_RETURN(errId)}
+	#define CHECK_TRUE(param) if (!(param)) return false;
+	#define ON_FALSE_ERR(param, errId) {if (!(param)) PRINT_ERR_RETURN(errId)}
+	#define ON_TRUE_ERR(param, errId) {if (param) PRINT_ERR_RETURN(errId)}
 	#define PRINT_ERR_RETURN(errId) {printf("[Error]: %s\n", Msg::ErrorsStrList[errId]); return false;}
 
 	class Compiler
@@ -27,21 +29,27 @@ namespace L3Compiler
 
 	private :		
 
+		typedef std::map<const char*, std::pair<TypeNode*, SigNode::SubParams*>, StrCmp> SubsMap;
+
 		SubsDefNode* _program;
         CodeGenerator* _codeGen;
+
         std::map<const char*, Variable, StrCmp> _scopeVars;		
         std::stack<TypeNode> _stackValuesTypes;
         int _blockArgsCount;
 		int _blockLocalsCount;
 
+		SubsMap _subs;
+
+		const char* _currSubName;
+
 		std::map<int, Variable> _scopeTmpVars;
 		std::set<int> _allScopeTmpVars;
 		std::set<int> _freeScopeTmpVars;
 
-		const char* GetSubName(SubDefNode* node);
         std::string GetString(TypeNode* type);
         void EnterTheBlock();
-        bool IsExistsMainFunc();
+		bool CheckMainFunc();
 		bool StaticTest();
         bool FindVariable(const char* ident, Variable& var);
 
@@ -49,8 +57,7 @@ namespace L3Compiler
 		bool SubDefNodeProcess(SubDefNode* node);
 		bool FuncDefProcess(FuncDefNode* node);
 		bool ProcDefProcess(ProcDefNode* node);
-		bool SignatureProcess(SigNode* node);
-		bool ParamsDefProcess(ParamsDefNode* node);
+		bool SignatureProcess(TypeNode* type, SigNode* node);
 		bool VarDefsProcess(VarsDefNode* node);
 		bool VarDefProcess(VarNode* var, TypeNode* type);
 		bool StatementsProcess(StatementsNode* node);
@@ -66,6 +73,7 @@ namespace L3Compiler
 		bool ExprProcess(ExprNode* node);
 		bool PrintStatementProcess(PrintNode* node);
 
+		bool IsVoidType(const TypeNode& type);
 		bool IsIntType(const TypeNode& type);
 		bool IsCharType(const TypeNode& type);
 		bool IsBoolType(const TypeNode& type);

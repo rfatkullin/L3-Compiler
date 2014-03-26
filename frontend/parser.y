@@ -26,12 +26,10 @@ FILE* out = NULL;
 	char		    	m_ch;
 	char*		    	m_str;
 	SubsDefNode*		m_subs_def_node;
-	SubDefNode*	    	m_sub_def_node;
-	FuncDefNode*		m_func_def_node;
-	ProcDefNode*		m_proc_def_node;
+	SubDefNode*	    	m_sub_def_node;	
 	SigNode*	    	m_sig_node;
 	ParamsDefNode*		m_params_def_node;
-	ParamSecNode*		m_param_sec_node;
+	ParamSeqNode*		m_param_sec_node;
 	TypeNode*	    	m_type_node;
 	StatementsNode*		m_statements_node;
 	IdentsNode*	    	m_idents_node;
@@ -56,6 +54,7 @@ FILE* out = NULL;
 	LeftValueNode* 		m_left_value_node;
 	ArrElNode*		m_arr_el_node;
 	ExprNode*		m_expr_node;
+	std::list<ExprNode*>*	m_func_params;
 }
 
 %right ASSIGN
@@ -64,7 +63,7 @@ FILE* out = NULL;
 
 %token CHAR CHAR_TYPE CHECK PRINT DO ELSE ELSEIF ENDFOR ENDFUNC ENDIF ENDPROC ENDWHILE FF FOR FUNC IF INT_TYPE NIL PROC REPEAT STEP THEN
 %token TO TT UNTIL WHILE LPAREN RPAREN RLPAREN RRPAREN COMMA SEMICOLON POINTER_METHOD ASSIGN PLUS MINUS DIVIDE MOD CAP EXCL
-%token LOG_CAP EQ NOT_EQ LSS_EQ GTR_EQ LSS GTR LOG_AND LOG_OR BOOL_TYPE
+%token LOG_CAP EQ NOT_EQ LSS_EQ GTR_EQ LSS GTR LOG_AND LOG_OR BOOL_TYPE VOID_TYPE
 %token IDENT STR NUMBER BOOL
 
 %type <m_number> 	NUMBER
@@ -83,18 +82,16 @@ FILE* out = NULL;
 %type <m_subs_def_node> 	start
 %type <m_subs_def_node> 	program
 %type <m_sub_def_node> 		subprogram_def
-%type <m_func_def_node> 	func_def
-%type <m_proc_def_node> 	proc_def
-%type <m_sig_node> 			signature
-%type <m_params_def_node> 	params_def
+%type <m_sig_node>		signature
+%type <m_params_def_node>	params_def
 %type <m_param_sec_node> 	param_section
 %type <m_type_node> 		type
 %type <m_statements_node>	statements
 %type <m_idents_node>		idents
 %type <m_statement_node>	statement
 %type <m_vars_def_node>		vars_def
-%type <m_vars_node>			vars
-%type <m_var_node>			var
+%type <m_vars_node>		vars
+%type <m_var_node>		var
 %type <m_assign_node>		assign
 %type <m_new_arr_basic>		new_arr_basic
 %type <m_new_arr_node>		new_arr
@@ -102,29 +99,29 @@ FILE* out = NULL;
 %type <m_check_node>		check
 %type <m_print_node>		print
 %type <m_func_call_node>	func_call
-%type <m_for_node>			for
+%type <m_for_node>		for
 %type <m_for_param_node>	for_from_param
 %type <m_for_to_param_node>	for_to_param
-%type <m_if_node>	if_statement
+%type <m_if_node>		if_statement
 %type <m_if_suffix_node>	if_suffix
 %type <m_else_if_node>		else_if
 %type <m_while_do_node>		while_do
 %type <m_arr_el_node>		get_arr_element
-%type <m_number>			basic_type
-%type <m_expr_node>			expr
-%type <m_expr_node>			term_4
-%type <m_expr_node>			term_3
-%type <m_expr_node>			term_2
-%type <m_expr_node>			term_1
-%type <m_expr_node>			pow_factor
-%type <m_expr_node>			ufactor
-%type <m_expr_node>			factor
-%type <m_expr_node>			factor_ident
-%type <m_expr_node>			factor_number
-%type <m_expr_node>			factor_ch
-%type <m_expr_node>			factor_str
-%type <m_expr_node>			factor_bool
-%type <m_idents_node>		params
+%type <m_number>		basic_type
+%type <m_expr_node>		expr
+%type <m_expr_node>		term_4
+%type <m_expr_node>		term_3
+%type <m_expr_node>		term_2
+%type <m_expr_node>		term_1
+%type <m_expr_node>		pow_factor
+%type <m_expr_node>		ufactor
+%type <m_expr_node>		factor
+%type <m_expr_node>		factor_ident
+%type <m_expr_node>		factor_number
+%type <m_expr_node>		factor_ch
+%type <m_expr_node>		factor_str
+%type <m_expr_node>		factor_bool
+%type <m_func_params>		func_params
 
 %{
 	int yylex( YYSTYPE *yylval_param, YYLTYPE *yylloc_param, yyscan_t scanner );
@@ -135,42 +132,28 @@ FILE* out = NULL;
 
 start 	: program
 			{
-				*main_node = $1;
+			    *main_node = $1;
 			}
 
 program : subprogram_def program
 			{
-				$$ = new SubsDefNode( $1, $2 );
+			    $$ = new SubsDefNode( $1, $2 );
 			}
 		| subprogram_def
 			{
-				$$ = new SubsDefNode( $1, NULL );
+			    $$ = new SubsDefNode( $1, NULL );
 			};
 
-subprogram_def : func_def
+subprogram_def : FUNC signature POINTER_METHOD type statements ENDFUNC
 		{
-			SubDefNode* node = new SubDefNode( FUNC );
-			node->func = $1;
+			SubDefNode* node = new SubDefNode(FUNC, $2, $4, $5);
 			$$ = node;
 		}
-	| proc_def
+		| PROC signature statements ENDPROC
 		{
-			SubDefNode* node = new SubDefNode( PROC );
-			node->proc = $1;
+			SubDefNode* node = new SubDefNode(PROC, $2, new TypeNode(VOID_TYPE, 0), $3);
 			$$ = node;
 		};
-
-func_def : FUNC signature POINTER_METHOD type statements ENDFUNC
-			{
-				FuncDefNode* node = new FuncDefNode( $2, $4, $5 );
-				$$ = node;
-			};
-
-proc_def : PROC signature statements ENDPROC
-			{
-				ProcDefNode* node = new ProcDefNode( $2, $3 );
-				$$ = node;
-			};
 
 signature : IDENT LPAREN params_def RPAREN
 			{
@@ -179,36 +162,36 @@ signature : IDENT LPAREN params_def RPAREN
 			};
 
 params_def : param_section SEMICOLON params_def
-				{
-					ParamsDefNode* node = new ParamsDefNode( $1, $3 );
-					$$ = node;
-				}
-	| param_section
-		{
+		    {
+			ParamsDefNode* node = new ParamsDefNode( $1, $3 );
+			$$ = node;
+		    }
+	    | param_section
+		    {
 			ParamsDefNode* node = new ParamsDefNode( $1, NULL );
 			$$ = node;
-		}
-	|	{
+		    }
+	    |	    {
 			$$ = NULL;
-		}
-	;
+		    }
+	    ;
 
 param_section : idents POINTER_METHOD type
-	{
-		ParamSecNode* node = new ParamSecNode( $1, $3 );
-		$$ = node;
-	}
+		    {
+			ParamSeqNode* node = new ParamSeqNode( $1, $3 );
+			$$ = node;
+		    }
 
 idents : IDENT COMMA idents
-			{
-				IdentsNode* node = new IdentsNode( $1, $3 );
-				$$ = node;
-			}
-	| IDENT
-		{
-			IdentsNode* node = new IdentsNode( $1, NULL );
+		    {
+			IdentsNode* node = new IdentsNode( $1, $3 );
 			$$ = node;
-		};
+		    }
+	    | IDENT
+		    {
+			    IdentsNode* node = new IdentsNode( $1, NULL );
+			    $$ = node;
+		    };
 
 statements : statement SEMICOLON statements
 		{
@@ -737,24 +720,26 @@ get_arr_element : IDENT RLPAREN expr RRPAREN
 						$$ = node;
 					};
 
-func_call : IDENT LPAREN params RPAREN
+func_call : IDENT LPAREN func_params RPAREN
 			{
 				FuncCallNode* node = new FuncCallNode( $1, $3 );
 				$$ = node;
 			};
 
-params : IDENT COMMA params
+func_params : expr COMMA func_params
 			{
-				IdentsNode* node = new IdentsNode( $1, $3 );
-				$$ = node;
+			    std::list<ExprNode*>* tmpList = $3;
+			    tmpList->push_front($1);
+			    $$ = tmpList;
 			}
-	| IDENT
-		{
-			IdentsNode* node = new IdentsNode( $1, NULL );
-			$$ = node;
-		}
+	| expr
+			{
+			    std::list<ExprNode*>* tmpList = new std::list<ExprNode*>();
+			    tmpList->push_front($1);
+			    $$ = tmpList;
+			}
 	|
-		{ $$ = NULL; };
+			{ $$ = new std::list<ExprNode*>(); };
 
 %%
 

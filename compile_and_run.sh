@@ -21,5 +21,9 @@ if [ $res != 0 ] ; then
     exit $res
 fi
 
+chmod +x ./test_source.exe
+
 echo "Run target program..."
 ./test_source.exe
+
+echo "Program finished. Exit code: $?."

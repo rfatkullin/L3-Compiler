@@ -14,21 +14,23 @@ public :
     CodeGenerator(const char* outputFilePath);
     ~CodeGenerator();
 
-    void SubDef(TypeNode* returnType);
-    void SubDef();
-    void SubName(const char* name);
-    void SignatureStart();
-    void Def(const std::string& typeStr, bool isContinious);
-    void SignatureEnd();
+	void Start();
+	void End();
+
+	void SubSignatureStart(TypeNode* returnType);
+	void SetSubName(const char* name);
+	void SetSubParamDef(TypeNode* typeNode, bool isContinious);
+	void SubSignatureEnd();
     void MarkAsEntryPoint();
     void BlockStart();
-    void BlockEnd(const std::map<const char*, Variable, StrCmp>& scopeVariables);
+	void BlockEnd(const char* subName, const std::map<const char*, Variable, StrCmp>& scopeVariables, int localsCnt, bool isNeedRet);
 
     void LoadIntConst(int num);
     void LoadBoolConst(bool val);
     void LoadStr(const char* str);
     void LoadVariable(const Variable& var);
 	void SaveFromStack(const Variable& var);
+	void PopFromStack();
 
 	void LogAndOperator();
 	void LogOrOperator();
@@ -55,6 +57,9 @@ public :
 	void PrintChar();
 	void PrintBool();
 
+	void SetSubCall(const char *subName);
+	void SetRet();
+
 	void SetLabel(int labelNum);
 	void SetLabel(std::string label);
 	void SetJumpTo(int toLabelNum);
@@ -71,8 +76,10 @@ public :
 
 private :
 
+	static const std::string ilClassName;
+	static const std::string ilAssemblyName;
 	static const std::string TwoTab;
-	static const std::string OneTab;
+	static const std::string OneTab;	
 
     void Reset();
 
@@ -82,10 +89,15 @@ private :
 	std::string GetNewLabel(int* labelNum);
 	std::string GetLabelNameByNum(int labelNum);
 
+	std::map<const char*, std::string, StrCmp> _subsFullName;
+
 	void SetCondJumpToLabel(std::string label, bool onTrue);
 
     FILE*       _output;
 
+	const char* _currSubName;
+	std::string _currSubSig;
+	std::string _currSubRetType;
     std::string _ilCode;
     int         _maxStackDepth;
     int         _currStackDepth;
