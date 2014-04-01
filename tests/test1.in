@@ -1,0 +1,28 @@
+func Op (a,b->int; op->char) -> int
+
+	if (op == '+') then
+		Op = a + b;
+	elseif op == '-' then
+		Op = a - b;
+	else
+		Op = 0;
+	endif
+endfunc
+
+proc PairPrint(a,b->int)
+	print a;
+	print b;
+endproc
+
+func main (args->[[char]]) -> int
+	a = 89, b = 11 -> int;
+
+	print Op(a, b, '+');
+	print Op(a, b, '-');
+
+	a = ((2 + 6) / 4) - (1);
+
+	print 99 + (6 / 2);
+
+	main = 0;
+endfunc
