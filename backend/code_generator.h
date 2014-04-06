@@ -23,7 +23,7 @@ public :
 	void SubSignatureEnd();
     void MarkAsEntryPoint();
     void BlockStart();
-	void BlockEnd(const char* subName, const std::map<const char*, Variable, StrCmp>& scopeVariables, int localsCnt, bool isNeedRet);
+	void BlockEnd(const char* subName, const std::map<const char*, Variable, StrCmp>& scopeVariables, bool isNeedRet);
 
     void LoadIntConst(int num);
     void LoadBoolConst(bool val);
@@ -69,12 +69,18 @@ public :
 	void SetCondJumpToLabel(int labelNum, bool onTrue);
 	int SetNewLabel();
 
+	void NewArr(TypeNode* type);
+
+	void LoadArrElem(const TypeNode& type);
+	void SaveArrElem(const TypeNode& type);
+	void LoadArrObj();
+
 	void ExitOn(bool cond);
 
 	void SaveStackDepth();
 	void RestoreStackDepth();
 
-    static std::string TypeToString(TypeNode* node);
+	static std::string TypeToString(const TypeNode* node);
     static std::string IntToStr(int num);
 
 private :

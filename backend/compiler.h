@@ -47,7 +47,7 @@ namespace L3Compiler
 		std::set<int> _allScopeTmpVars;
 		std::set<int> _freeScopeTmpVars;
 
-        std::string GetString(TypeNode* type);
+		std::string GetString(TypeNode* type);
         void EnterTheBlock();
 		bool CheckMainFunc();
 		bool StaticTest();
@@ -67,17 +67,22 @@ namespace L3Compiler
 		bool WhileStatementProcess(WhileDoNode* node);
 		bool ForStatementProcess(ForNode* node);
 		bool RepeatStatementProcess(RepeatNode* node);
-		bool CheckStatementProcess(CheckNode* node);
-		bool NewArrAssignProcess(Variable var, NewArrNode* node);
+		bool CheckStatementProcess(CheckNode* node);		
 		bool ExprAssignProcess(Variable var, ExprNode* node);
 		bool ExprProcess(ExprNode* node);
 		bool PrintStatementProcess(PrintNode* node);
+		bool NewArrProcess(NewArrNode* node);
+		bool GetArrElProcess(ArrElNode* node);
+		bool ArrElProcess(ArrElNode* node);
 
 		bool IsVoidType(const TypeNode& type);
 		bool IsIntType(const TypeNode& type);
 		bool IsCharType(const TypeNode& type);
 		bool IsBoolType(const TypeNode& type);
 		bool IsCharOrIntType(const TypeNode& type);
+
+		bool CompareOpArgCheck(const TypeNode& type1, const TypeNode& type2);
+		bool AddOpArgCheck(const TypeNode& type1, const TypeNode& type2);
 
 		bool AddScopeVar(const char* ident, int id, TypeNode* type, bool isArg);
 		bool AddScopeVar(const char* ident, const Variable& var);

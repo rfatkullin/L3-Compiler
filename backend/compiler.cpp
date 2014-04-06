@@ -111,7 +111,7 @@ namespace L3Compiler
 		if (node->tag == FUNC)
 			ON_FALSE_ERR(_stackValuesTypes.size() > 0 && TypeMatch(_stackValuesTypes.top(), *node->type), Msg::SubSigReturnMismatch);
 
-		_codeGen->BlockEnd(node->signature->funcName, _scopeVars, _blockLocalsCount, node->tag == PROC);
+		_codeGen->BlockEnd(node->signature->funcName, _scopeVars, node->tag == PROC);
 
 		return true;
 	}
@@ -247,10 +247,6 @@ namespace L3Compiler
 				CHECK_TRUE(ExprAssignProcess(var, node->expr));
 				break;
 
-			case NEW_ARR :
-				CHECK_TRUE(NewArrAssignProcess(var, node->new_arr));
-				break;
-
 			default :
 				PRINT_ERR_RETURN(Msg::IdentificatorExpected);
 				break;
@@ -263,11 +259,7 @@ namespace L3Compiler
     {
 		CHECK_TRUE(ExprProcess(exprNode));
 
-		if (!TypeMatch(_stackValuesTypes.top(), *var._type))
-        {
-            printf("[Error]: type mismatch!\n");
-            return false;
-        }
+		ON_FALSE_ERR(TypeMatch(_stackValuesTypes.top(), *var._type), Msg::TypeMismatch);
 
         _stackValuesTypes.pop();
         _codeGen->SaveFromStack(var);
@@ -342,8 +334,12 @@ namespace L3Compiler
 			CHECK_TRUE(FuncCallProcess(node->un.func_call));
 			break;
 
+		case NEW_ARR :
+			CHECK_TRUE(NewArrProcess(node->un.new_arr));
+			break;
+
 		case ARR_EL :
-			//To Fix
+			CHECK_TRUE(GetArrElProcess(node->un.arr_el));
 			break;
 
 		default :
@@ -395,8 +391,7 @@ namespace L3Compiler
 			if (!TypeMatch(type1, type2) &&
 				(!IsCharOrIntType(type1) || !IsCharOrIntType(type2)))
 			{
-				printf("[Error]: type mismatch!\n");
-				return false;
+				PRINT_ERR_RETURN(Msg::TypeMismatch);
 			}
 
 			if (node->op == EQ)
@@ -411,11 +406,7 @@ namespace L3Compiler
 		case LSS_EQ :
 		case GTR_EQ :
 
-			if (!IsCharOrIntType(type1) || !IsCharOrIntType(type2))
-			{
-				printf("[Error]: type mismatch!\n");
-				return false;
-			}
+			CHECK_TRUE(CompareOpArgCheck(type1, type2));
 
 			switch (node->op)
 			{
@@ -456,8 +447,7 @@ namespace L3Compiler
 			}
 			else
 			{
-				printf("[Error]: type mismatch!\n");
-				return false;
+				PRINT_ERR_RETURN(Msg::TypeMismatch);
 			}
 			break;
 
@@ -482,10 +472,10 @@ namespace L3Compiler
 			}
 			break;
 
-		//MULTIPLY
-		case DIVIDE :
-		case MOD	:
-		case CAP	:
+		case MULTIPLY :
+		case DIVIDE	  :
+		case MOD	  :
+		case CAP	  :
 
 			if (!IsIntType(type1) || !IsIntType(type2))
 			{
@@ -521,49 +511,96 @@ namespace L3Compiler
 		return true;
 	}
 
-	bool Compiler :: NewArrAssignProcess(Variable var, NewArrNode* node)
-    {
-        return true;
-    }
+	bool Compiler :: NewArrProcess(NewArrNode* node)
+	{
+		CHECK_TRUE(ExprProcess(node->expr));
 
+		_codeGen->NewArr(node->type);
+
+		_stackValuesTypes.pop();
+		TypeNode type = *node->type;
+		++type.dimen;
+		_stackValuesTypes.push(type);
+
+		return true;
+	}
+
+	bool Compiler :: GetArrElProcess(ArrElNode* node)
+	{
+		Variable var;
+		CHECK_TRUE(FindVariable(node->ident, var));
+
+		_codeGen->LoadVariable(var);
+
+		CHECK_TRUE(ArrElProcess(node));
+
+		TypeNode type = *var._type;
+		type.dimen -= node->indexes->size();
+
+		_codeGen->LoadArrElem(type);
+
+		_stackValuesTypes.push(type);
+
+		return true;
+	}
+
+	bool Compiler :: ArrElProcess(ArrElNode* node)
+	{
+		std::list<ExprNode*>* indexes = node->indexes;
+
+		std::list<ExprNode*>::iterator lastEl = --indexes->end();
+		for (std::list<ExprNode*>::iterator it = indexes->begin(); it != indexes->end(); ++it)
+		{
+			CHECK_TRUE(ExprProcess(*it));
+
+			if (it != lastEl)
+				_codeGen->LoadArrObj();
+
+			_stackValuesTypes.pop();
+
+		}
+
+		return true;
+	}
 
 	bool Compiler :: AssignProcess(AssignNode* node)
-    {        
-		std::map<const char*, Variable, StrCmp>::iterator varIt;
-
-		CHECK_TRUE(ExprProcess(node->expr));
+	{
+		TypeNode type;
+		Variable var;
 
 		switch (node->left->tag)
 		{
 		case IDENT :
-			varIt = _scopeVars.find(node->left->ident);
+			CHECK_TRUE(ExprProcess(node->expr));
 
-			if (varIt == _scopeVars.end())
+			if (!strcmp(_currSubName, node->left->ident))
 			{
-				if (!strcmp(_currSubName, node->left->ident))
-				{
-					_codeGen->SetRet();
-					return true;
-				}
-
-				PRINT_ERR_RETURN(Msg::VariableNotDiclared);
+				_codeGen->SetRet();
+				return true;
 			}
 
-			if (!TypeMatch(*varIt->second._type, _stackValuesTypes.top()))
-				PRINT_ERR_RETURN(Msg::TypeMismatch);
-
-			_stackValuesTypes.pop();
-			_codeGen->SaveFromStack(varIt->second);
+			ON_FALSE_ERR(FindVariable(node->left->ident, var), Msg::VariableNotDiclared);
+			ON_FALSE_ERR(TypeMatch(*var._type, _stackValuesTypes.top()), Msg::TypeMismatch);
+			_codeGen->SaveFromStack(var);
 			break;
 
 		case ARR_EL :
-			//TO DO Maybe:)
+			ON_FALSE_ERR(FindVariable(node->left->arr_el->ident, var), Msg::VariableNotDiclared);
+			_codeGen->LoadVariable(var);
+			CHECK_TRUE(ArrElProcess(node->left->arr_el))
+			CHECK_TRUE(ExprProcess(node->expr));
+			type = *var._type;
+			type.dimen -= node->left->arr_el->indexes->size();
+			ON_FALSE_ERR(TypeMatch(type, _stackValuesTypes.top()), Msg::TypeMismatch);
+			_codeGen->SaveArrElem(type);
 			break;
 
 		default :
 			PRINT_ERR_RETURN(Msg::UnexpectedOperator);
 			break;
 		}
+
+		_stackValuesTypes.pop();
 
         return true;
     }
@@ -723,11 +760,16 @@ namespace L3Compiler
 		Variable toExprVar = GetFreeTmpVar(*counterVar._type);
 		Variable stepExprVar = GetFreeTmpVar(TypeNode(INT_TYPE, 0));
 
+		CHECK_TRUE(CompareOpArgCheck(*counterVar._type, *toExprVar._type));
+		CHECK_TRUE(AddOpArgCheck(*counterVar._type, *stepExprVar._type));
+
 		CHECK_TRUE(ExprProcess(node->_toParam->to));
 		_codeGen->SaveFromStack(toExprVar);
+		_stackValuesTypes.pop();
 
 		CHECK_TRUE(ExprProcess(node->_toParam->step));
 		_codeGen->SaveFromStack(stepExprVar);
+		_stackValuesTypes.pop();
 
 		int loopBeginCondLabel =_codeGen->SetNewLabel();
 
@@ -750,9 +792,7 @@ namespace L3Compiler
 
 	bool Compiler :: AddScopeVar(const char* ident, int id, TypeNode* type, bool isArg)
 	{
-		ON_TRUE_ERR(_scopeVars.find(ident) != _scopeVars.end(), Msg::DeclarationConflict);
-
-		_scopeVars.insert(std::pair<const char*, Variable>(ident, Variable(id, type, isArg)));
+		CHECK_TRUE(AddScopeVar(ident, Variable(id, type, isArg)));
 
 		return true;
 	}
@@ -808,6 +848,23 @@ namespace L3Compiler
         return true;
     }
 
+	bool Compiler :: AddOpArgCheck(const TypeNode& type1, const TypeNode& type2)
+	{
+		ON_FALSE_ERR(IsIntType(type1) && IsIntType(type2)  ||
+					 IsIntType(type1) && IsCharType(type2) ||
+					 IsCharType(type1) && IsIntType(type2), Msg::TypeMismatch);
+
+		return true;
+	}
+
+
+	bool Compiler :: CompareOpArgCheck(const TypeNode& type1, const TypeNode& type2)
+	{
+		ON_FALSE_ERR(IsCharOrIntType(type1) && IsCharOrIntType(type2), Msg::TypeMismatch);
+
+		return true;
+	}
+
 	bool Compiler :: IsVoidType(const TypeNode& type)
 	{
 		return (type.type == VOID_TYPE) && (type.dimen == 0);
@@ -842,7 +899,7 @@ namespace L3Compiler
 		Variable var(_blockLocalsCount, new TypeNode(type), false);
 		std::string varName = "^^^" + CodeGenerator::IntToStr(_blockLocalsCount) + "^^^";
 		_scopeTmpVars.insert(std::pair<int, Variable>(_blockLocalsCount, var));
-		_scopeVars.insert(std::pair<const char*, Variable>(varName.c_str(), var));
+		AddScopeVar(varName.c_str(), var);
 		_allScopeTmpVars.insert(_blockLocalsCount++);
 
 		return var;

@@ -33,7 +33,6 @@ class ForToParamNode;
 class VarsNode;
 class VarNode;
 class NewArrNode;
-class NewArrBasic;
 class LeftValueNode;
 class ArrElNode;
 
@@ -332,21 +331,9 @@ public :
 class NewArrNode
 {
 public :
-	NewArrNode( int new_dimen, NewArrBasic* new_arr_basic )
-		:	dimen( new_dimen ),
-			arr_basic( new_arr_basic )
-		{}
-
-	int 			dimen;
-	NewArrBasic* 	arr_basic;
-};
-
-class NewArrBasic
-{
-public :
-	NewArrBasic( TypeNode* new_type, ExprNode* new_expr )
-		: 	type( new_type ),
-			expr( new_expr )
+	NewArrNode(TypeNode* newType, ExprNode* newExpr)
+		:	type(newType),
+			expr(newExpr)
 		{}
 
 	TypeNode* type;
@@ -384,13 +371,13 @@ public :
 class ArrElNode
 {
 public :
-	ArrElNode( char* new_ident, ExprNode* new_index )
-		: 	ident( new_ident ),
-			index( new_index )
+	ArrElNode(char* newIdent, std::list<ExprNode*>* newIndexes)
+		: 	ident(newIdent),
+			indexes(newIndexes)
 		{}
 
-	char* 		ident;
-	ExprNode*	index;
+	char*					ident;
+	std::list<ExprNode*>*	indexes;
 };
 
 class RepeatNode
@@ -408,6 +395,11 @@ public :
 class TypeNode
 {
 public :
+	TypeNode()
+		:	type(-1),
+			dimen(-1)
+	{}
+
 	TypeNode( int new_type, int new_dimen )
 		: 	type( new_type ),
 			dimen( new_dimen )
@@ -439,6 +431,7 @@ public :
 			bool			log;
 			ExprNode* 		expr;
 			ArrElNode* 		arr_el;
+			NewArrNode*		new_arr;
 			FuncCallNode* 	func_call;
 		} un;
 	};

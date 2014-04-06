@@ -1,7 +1,6 @@
 #!/bin/bash
 #Run from build directory
 
-ilCodeFilePath="test.il"
 binaryFilePath="./test.exe"
 resFilePath="res.txt"
 red='\e[0;31m'
@@ -10,7 +9,7 @@ NC='\e[0m' # No Color
 
 function Fail
 {
-	echo -e "${red}[FAIL]$1--------$2${NC}"
+	echo -e "${red}[FAIL]$1\t$2${NC}"
 	exit 1;
 }
 
@@ -27,6 +26,8 @@ inFiles=`ls ${testDirPath}/*.in`
 for inFile in ${inFiles}
 do
 	outFile="${inFile%.in}.out"
+	baseName=`basename ${inFile}`
+	ilCodeFilePath="${baseName%.in}.il"
 
 	${compilerPath} "${inFile}" "${ilCodeFilePath}"
 

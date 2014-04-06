@@ -82,24 +82,30 @@ void CodeGenerator :: BlockStart()
     fprintf(_output, "{\n");
 }
 
-void CodeGenerator :: BlockEnd(const char* subName, const std::map<const char*, Variable, StrCmp>& scopeVariables, int localsCnt, bool isNeedRet)
+void CodeGenerator :: BlockEnd(const char* subName, const std::map<const char*, Variable, StrCmp>& scopeVariables,bool isNeedRet)
 {
     if (_isEntryPoint)
 		fprintf(_output, "%s.entrypoint\n", TwoTab.c_str() );
 
 	fprintf(_output, "%s.maxstack %d\n", TwoTab.c_str(), _maxStackDepth);
 
-	std::string localsInit = TwoTab + ".locals init(";
-    int varIndex = 0;	
+	std::string localsInit = TwoTab + ".locals init(";    
+	std::list<Variable> locals;
     for (std::map<const char*, Variable, StrCmp>::const_iterator it = scopeVariables.begin(); it != scopeVariables.end(); ++it)
     {
-        if (it->second._isArg)
+		if (it->second._isArg)
             continue;
 
-        ++varIndex;
-        localsInit += TypeToString(it->second._type);
+		locals.push_back(it->second);
+	}
 
-		if (varIndex < localsCnt)
+	locals.sort(Variable::VarCompare);
+	std::list<Variable>::iterator lastElem = --locals.end();
+	for (std::list<Variable>::iterator it = locals.begin(); it != locals.end(); ++it)
+	{
+		localsInit += TypeToString(it->_type);
+
+		if (it != lastElem)
             localsInit += ",";
     }
 	localsInit += ")";
@@ -142,10 +148,10 @@ void CodeGenerator :: LoadVariable(const Variable& var)
 
 	_ilCode += TwoTab;
 
-    if (var._isArg)
-        _ilCode = _ilCode + "ldarg " + IntToStr(var._id) + "\n";
+	if (var._isArg)
+		_ilCode = _ilCode + "ldarg " + IntToStr(var._id) + "\n";
     else
-        _ilCode = _ilCode + "ldloc " + IntToStr(var._id) + "\n";
+		_ilCode = _ilCode + "ldloc " + IntToStr(var._id) + "\n";
 }
 
 void CodeGenerator :: SaveFromStack(const Variable& var)
@@ -154,7 +160,7 @@ void CodeGenerator :: SaveFromStack(const Variable& var)
 
 	_ilCode += TwoTab;
 
-    if (var._isArg)
+	if (var._isArg)
 		_ilCode = _ilCode + "starg " + IntToStr(var._id) + "\n";
     else
 		_ilCode = _ilCode + "stloc " + IntToStr(var._id) + "\n";
@@ -397,6 +403,42 @@ void CodeGenerator :: SetCondJumpToLabel(std::string label, bool onTrue)
 	DecStackSize();
 }
 
+void CodeGenerator :: NewArr(TypeNode* type)
+{
+	_ilCode += TwoTab + "newarr " + TypeToString(type) + "\n";
+}
+
+void CodeGenerator :: LoadArrElem(const TypeNode& type)
+{
+	_ilCode += TwoTab;
+
+	if (type.dimen == 0)
+		_ilCode += "ldelem " + TypeToString(&type);
+	else
+		_ilCode += "ldelem.ref";
+
+	_ilCode += "\n";
+}
+
+void CodeGenerator :: LoadArrObj()
+{
+	_ilCode += TwoTab + "ldelem.ref\n";
+}
+
+void CodeGenerator :: SaveArrElem(const TypeNode& type)
+{
+	_ilCode += TwoTab;
+
+	if (type.dimen == 0)
+		_ilCode += "stelem " + TypeToString(&type);
+	else
+		_ilCode += "stelem.ref";
+
+	_ilCode += "\n";
+}
+
+void SaveArrElem(const TypeNode& type);
+
 void CodeGenerator :: ExitOn(bool cond)
 {
 	int labelNum;
@@ -440,11 +482,11 @@ void CodeGenerator :: SetLabel(std::string label)
 	_ilCode += OneTab + label + ": nop\n";
 }
 
-std::string CodeGenerator :: TypeToString(TypeNode* node)
+std::string CodeGenerator :: TypeToString(const TypeNode* node)
 {
     std::string str = "";
 
-    switch (node->type)
+	switch (node->type)
     {
 		case INT_TYPE :
             str += "int32";
@@ -462,7 +504,7 @@ std::string CodeGenerator :: TypeToString(TypeNode* node)
 			break;
     }
 
-    for (int i = 0; i < node->dimen; ++i)
+	for (int i = 0; i < node->dimen; ++i)
         str += "[]";
 
     return str;
