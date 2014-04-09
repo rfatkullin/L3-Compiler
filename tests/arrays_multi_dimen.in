@@ -1,0 +1,31 @@
+func main (args->[[char]]) -> int
+	b -> [[[int]]];
+	n = 10 -> int;
+	t = 20 -> int;
+	i, j, k -> int;
+	sum = 0 -> int;
+
+	b = [[[int]] n];
+
+	for i = 0 to n-1 do
+		b[i] = [[int] t];
+		for j = 0 to t-1 do
+			b[i][j] = [int t];
+			for k = 0 to t-1 do
+				b[i][j][k] = (i + j) + k;
+			endfor;
+		endfor;
+	endfor;
+
+	for i = 0 to n-1 do
+		for j = 0 to t-1 do
+			for k = 0 to t-1 do
+				sum = sum + b[i][j][k];
+			endfor;
+		endfor;
+	endfor;
+
+	print sum;
+
+	main = 0;
+endfunc

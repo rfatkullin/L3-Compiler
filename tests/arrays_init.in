@@ -1,4 +1,3 @@
-
 func main (args->[[char]]) -> int
 	b -> [[int]];
 	n = 5 -> int;
