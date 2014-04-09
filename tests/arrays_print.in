@@ -12,21 +12,22 @@ func PrintArray(a->[[int]]; n->int) -> int
 endfunc
 
 func main (args->[[char]]) -> int
-	a -> [[int]];
+	b -> [[int]];
 	n = 5 -> int;
 	i, j -> int;
 
-	a = [[int] n];
+	b = [[int] n];
 
 	for i = 0 to n-1 do
-		a[i] = [int n];
+		b[i] = [int n];
 
 		for j = 0 to n-1 do
-			a[i][j] = i + j;
+			b[i][j] = i + j;
 		endfor;
+
 	endfor;
 
-	PrintArray(a, n);
+	PrintArray(b, n);
 
 	main = 0;
 endfunc

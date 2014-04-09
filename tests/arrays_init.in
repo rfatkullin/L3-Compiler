@@ -1,0 +1,17 @@
+
+func main (args->[[char]]) -> int
+	b -> [[int]];
+	n = 5 -> int;
+	i, j -> int;
+
+	b = [[int] n];
+
+	for i = 0 to n-1 do
+		b[i] = [int n];
+		for j = 0 to n-1 do
+			b[i][j] = i + j;
+		endfor;
+	endfor;
+
+	main = 0;
+endfunc

@@ -27,7 +27,7 @@ namespace L3Compiler
         ~Compiler();
 		bool Run();
 
-	private :		
+	private :				
 
 		typedef std::map<const char*, std::pair<TypeNode*, SigNode::SubParams*>, StrCmp> SubsMap;
 
@@ -86,6 +86,8 @@ namespace L3Compiler
 
 		bool AddScopeVar(const char* ident, int id, TypeNode* type, bool isArg);
 		bool AddScopeVar(const char* ident, const Variable& var);
+
+		const char* GetTmpVarName(int id) const;
 
 		bool TypeMatch(const TypeNode& aT, const TypeNode& bT);
 

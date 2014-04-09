@@ -8,6 +8,10 @@ L3-Compiler
 	id1 (2 + 2)	умножение
 
 Замечания:
+-1) Не освобождается память из под имен временных переменных.
+		const char* varName = GetTmpVarName(_blockLocalsCount);
+		_scopeTmpVars.insert(std::pair<int, Variable>(_blockLocalsCount, var));
+		AddScopeVar(varName, var);
 0) Локальные переменные внутри циклов
 1) Нет операции произведения - нужно добавить.
 2) Нет поддержки массивов. Например, не будет работать следующее for a[i] = 1 to 9 do.

@@ -147,7 +147,7 @@ namespace L3Compiler
 		_blockLocalsCount = 0;
 
 		for (std::map<int, Variable>::iterator it = _scopeTmpVars.begin(); it != _scopeTmpVars.end(); ++it)
-		{
+		{			
 			delete it->second._type;
 		}
 
@@ -307,7 +307,7 @@ namespace L3Compiler
 			break;
 
 		case IDENT :
-			ON_FALSE_ERR(FindVariable(node->un.ident, tmpVar), Msg::VariableNotDiclared);
+			CHECK_TRUE(FindVariable(node->un.ident, tmpVar));
 			_stackValuesTypes.push(*tmpVar._type);
 			_codeGen->LoadVariable(tmpVar);
 			break;
@@ -548,8 +548,8 @@ namespace L3Compiler
 	{
 		std::list<ExprNode*>* indexes = node->indexes;
 
-		std::list<ExprNode*>::iterator lastEl = --indexes->end();
-		for (std::list<ExprNode*>::iterator it = indexes->begin(); it != indexes->end(); ++it)
+		std::list<ExprNode*>::reverse_iterator lastEl = --indexes->rend();
+		for (std::list<ExprNode*>::reverse_iterator it = indexes->rbegin(); it != indexes->rend(); ++it)
 		{
 			CHECK_TRUE(ExprProcess(*it));
 
@@ -579,13 +579,13 @@ namespace L3Compiler
 				return true;
 			}
 
-			ON_FALSE_ERR(FindVariable(node->left->ident, var), Msg::VariableNotDiclared);
+			CHECK_TRUE(FindVariable(node->left->ident, var));
 			ON_FALSE_ERR(TypeMatch(*var._type, _stackValuesTypes.top()), Msg::TypeMismatch);
 			_codeGen->SaveFromStack(var);
 			break;
 
 		case ARR_EL :
-			ON_FALSE_ERR(FindVariable(node->left->arr_el->ident, var), Msg::VariableNotDiclared);
+			CHECK_TRUE(FindVariable(node->left->arr_el->ident, var));
 			_codeGen->LoadVariable(var);
 			CHECK_TRUE(ArrElProcess(node->left->arr_el))
 			CHECK_TRUE(ExprProcess(node->expr));
@@ -838,12 +838,16 @@ namespace L3Compiler
 
 	bool Compiler :: FindVariable(const char* ident, Variable& var)
     {
-        std::map<const char*, Variable, StrCmp>::iterator it = _scopeVars.find(ident);
+		std::map<const char*, Variable, StrCmp>::iterator locIt = _scopeVars.find(ident);
 
-        if (it == _scopeVars.end())
-            return false;
+		if (locIt == _scopeVars.end())
+		{
+			printf("[%s]%s\n", _currSubName, ident);
 
-        var = (*it).second;
+			PRINT_ERR_RETURN(Msg::VariableNotDiclared);
+		}
+
+		var = (*locIt).second;
 
         return true;
     }
@@ -897,12 +901,22 @@ namespace L3Compiler
 		}
 
 		Variable var(_blockLocalsCount, new TypeNode(type), false);
-		std::string varName = "^^^" + CodeGenerator::IntToStr(_blockLocalsCount) + "^^^";
+		const char* varName = GetTmpVarName(_blockLocalsCount);
 		_scopeTmpVars.insert(std::pair<int, Variable>(_blockLocalsCount, var));
-		AddScopeVar(varName.c_str(), var);
+		AddScopeVar(varName, var);
 		_allScopeTmpVars.insert(_blockLocalsCount++);
 
 		return var;
+	}
+
+	const char* Compiler :: GetTmpVarName(int id) const
+	{
+		std::string nameString = "^_" + CodeGenerator::IntToStr(_blockLocalsCount);
+		int nameLength = nameString.length();
+		char* name = new char[nameLength + 1];
+		strncpy(name, nameString.c_str(), nameLength + 1);
+
+		return name;
 	}
 
 	void Compiler :: RetrieveTmpVar(int num)
