@@ -53,7 +53,7 @@ FILE* out = NULL;
 	LeftValueNode* 		m_left_value_node;
 	ArrElNode*		m_arr_el_node;
 	ExprNode*		m_expr_node;
-	std::list<ExprNode*>*	m_expr_list;
+	std::list<ExprNode*>*	m_expr_list;	
 }
 
 %right ASSIGN
@@ -83,6 +83,7 @@ FILE* out = NULL;
 %type <m_sub_def_node> 		subprogram_def
 %type <m_sig_node>		signature
 %type <m_params_def_node>	params_def
+%type <m_params_def_node>	params_def_rest
 %type <m_param_sec_node> 	param_section
 %type <m_type_node> 		type
 %type <m_statements_node>	statements
@@ -121,6 +122,7 @@ FILE* out = NULL;
 %type <m_expr_node>		factor_bool
 %type <m_expr_list>		func_params
 %type <m_expr_list>		get_arr_indexes
+%type <m_expr_list>		func_params_rest
 
 %{
 	int yylex( YYSTYPE *yylval_param, YYLTYPE *yylloc_param, yyscan_t scanner );
@@ -163,14 +165,20 @@ signature : IDENT LPAREN params_def RPAREN
 	    }
 	;
 
-params_def : param_section SEMICOLON params_def
+params_def : param_section params_def_rest
 	    {
-		ParamsDefNode* node = new ParamsDefNode( $1, $3 );
+		ParamsDefNode* node = new ParamsDefNode($1, $2);
 		$$ = node;
 	    }
-	| param_section
+	|
 	    {
-		ParamsDefNode* node = new ParamsDefNode( $1, NULL );
+		$$ = NULL;
+	    }
+	;
+
+params_def_rest : SEMICOLON param_section params_def_rest
+	    {
+		ParamsDefNode* node = new ParamsDefNode($2, $3);
 		$$ = node;
 	    }
 	|
@@ -758,6 +766,12 @@ get_arr_element : IDENT RLPAREN expr RRPAREN get_arr_indexes
 		ArrElNode* node = new ArrElNode( $1, $5);
 		$$ = node;
 	    }
+	| IDENT RLPAREN expr RRPAREN
+	    {
+		std::list<ExprNode*>* lst = new std::list<ExprNode*>();
+		lst->push_back($3);
+		$$ = new ArrElNode($1, lst);
+	    }
 	;
 
 get_arr_indexes : RLPAREN expr RRPAREN get_arr_indexes
@@ -765,38 +779,42 @@ get_arr_indexes : RLPAREN expr RRPAREN get_arr_indexes
 		$4->push_back($2);
 		$$ = $4;
 	    }
-	|
+	| RLPAREN expr RRPAREN
 	    {
-		$$ = new std::list<ExprNode*>();
+		std::list<ExprNode*>* lst = new std::list<ExprNode*>();
+		lst->push_back($2);
+		$$ = lst;
 	    }
 	;
 
 
 func_call : IDENT LPAREN func_params RPAREN
 	    {
-		FuncCallNode* node = new FuncCallNode( $1, $3 );
+		FuncCallNode* node = new FuncCallNode($1, $3 );
 		$$ = node;
 	    }
 	;
 
-func_params : expr COMMA func_params
+func_params : expr func_params_rest
 	    {
-		std::list<ExprNode*>* tmpList = $3;
+		std::list<ExprNode*>* tmpList = $2;
 		tmpList->push_front($1);
 		$$ = tmpList;
+	    }	
+	|   {
+		$$ = new std::list<ExprNode*>();
 	    }
-	| expr
+
+func_params_rest : COMMA expr func_params_rest
 	    {
-		std::list<ExprNode*>* tmpList = new std::list<ExprNode*>();
-		tmpList->push_front($1);
+		std::list<ExprNode*>* tmpList = $3;
+		tmpList->push_front($2);
 		$$ = tmpList;
 	    }
 	|
 	    {
 		$$ = new std::list<ExprNode*>();
 	    }
-	;
-
 %%
 
 bool ReadFile(const char* inputFilePath, std::string& output)
