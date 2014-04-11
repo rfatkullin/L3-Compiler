@@ -61,12 +61,14 @@ void CodeGenerator :: SetSubName(const char* name)
 
 void CodeGenerator :: SetSubParamDef(TypeNode* typeNode, bool isContinious)
 {
-	_currSubSig += TypeToString(typeNode) + (isContinious ? ", " : ")");
+	_currSubSig += TypeToString(typeNode) + (isContinious ? ", " : "");
 }
 
 void CodeGenerator :: SubSignatureEnd()
 {
-	_subsFullName.insert(std::make_pair(_currSubName, _currSubRetType + " " + ilAssemblyName + "." + ilClassName + "::" + _currSubSig));
+	_currSubSig += ")";
+
+	_subsFullName.insert(std::make_pair(_currSubName, _currSubRetType + " " + ilAssemblyName + "." + ilClassName + "::" + _currSubSig));	
 
 	fprintf(_output, ".method static %s %s\n", _currSubRetType.c_str(), _currSubSig.c_str());
 }

@@ -124,12 +124,16 @@ namespace L3Compiler
 		_currSubName = sig->funcName;
 
 		SigNode::SubParams* params = sig->params;
-		SigNode::SubParams::iterator lastElIt = --params->end();
-		for (SigNode::SubParams::iterator it = params->begin(); it != params->end(); ++it)
-		{
-			CHECK_TRUE(AddScopeVar(it->first, _blockArgsCount++, it->second, true));
 
-			_codeGen->SetSubParamDef(it->second, it != lastElIt);
+		if (params->size() > 0)
+		{
+			SigNode::SubParams::iterator lastElIt = --params->end();
+			for (SigNode::SubParams::iterator it = params->begin(); it != params->end(); ++it)
+			{
+				CHECK_TRUE(AddScopeVar(it->first, _blockArgsCount++, it->second, true));
+
+				_codeGen->SetSubParamDef(it->second, it != lastElIt);
+			}
 		}
 
 		_codeGen->SubSignatureEnd();
@@ -532,7 +536,7 @@ namespace L3Compiler
 
 		_codeGen->LoadVariable(var);
 
-		CHECK_TRUE(ArrElProcess(node));
+		CHECK_TRUE(ArrElProcess(node->indexes));
 
 		TypeNode type = *var._type;
 		type.dimen -= node->indexes->size();
@@ -544,10 +548,8 @@ namespace L3Compiler
 		return true;
 	}
 
-	bool Compiler :: ArrElProcess(ArrElNode* node)
+	bool Compiler :: ArrElProcess(std::list<ExprNode*>* indexes)
 	{
-		std::list<ExprNode*>* indexes = node->indexes;
-
 		std::list<ExprNode*>::reverse_iterator lastEl = --indexes->rend();
 		for (std::list<ExprNode*>::reverse_iterator it = indexes->rbegin(); it != indexes->rend(); ++it)
 		{
@@ -587,10 +589,21 @@ namespace L3Compiler
 		case ARR_EL :
 			CHECK_TRUE(FindVariable(node->left->arr_el->ident, var));
 			_codeGen->LoadVariable(var);
-			CHECK_TRUE(ArrElProcess(node->left->arr_el))
+			CHECK_TRUE(ArrElProcess(node->left->arr_el->indexes))
 			CHECK_TRUE(ExprProcess(node->expr));
 			type = *var._type;
 			type.dimen -= node->left->arr_el->indexes->size();
+			ON_FALSE_ERR(TypeMatch(type, _stackValuesTypes.top()), Msg::TypeMismatch);
+			_codeGen->SaveArrElem(type);
+			break;
+
+		case FUNC_CALL_ARR_EL :
+			CHECK_TRUE(FuncCallProcess(node->left->funcCallGetArrEl->funcCall))
+			type = _stackValuesTypes.top();
+			_stackValuesTypes.pop();
+			CHECK_TRUE(ArrElProcess(node->left->funcCallGetArrEl->indexes))
+			CHECK_TRUE(ExprProcess(node->expr));
+			type.dimen -= node->left->funcCallGetArrEl->indexes->size();
 			ON_FALSE_ERR(TypeMatch(type, _stackValuesTypes.top()), Msg::TypeMismatch);
 			_codeGen->SaveArrElem(type);
 			break;

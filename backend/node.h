@@ -35,6 +35,7 @@ class VarNode;
 class NewArrNode;
 class LeftValueNode;
 class ArrElNode;
+class FuncCallGetArrElNode;
 
 class SubsDefNode
 {
@@ -343,9 +344,9 @@ public :
 class AssignNode
 {
 public :
-	AssignNode( LeftValueNode* 	new_left, ExprNode* new_expr )
-		: 	left( new_left ),
-			expr( new_expr )
+	AssignNode(LeftValueNode* new_left, ExprNode* new_expr)
+		: 	left(new_left),
+			expr(new_expr)
 		{}
 
 	LeftValueNode* 	left;
@@ -355,17 +356,30 @@ public :
 class LeftValueNode
 {
 public :
-	LeftValueNode( int new_tag )
-		:	tag( new_tag )
+	LeftValueNode(int new_tag)
+		: tag(new_tag)
 		{}
 
-	int tag;
+	int tag;	
 
 	union
 	{
 		char* 		ident;
 		ArrElNode*	arr_el;
+		FuncCallGetArrElNode* funcCallGetArrEl;
 	};
+};
+
+class FuncCallGetArrElNode
+{
+public :
+	FuncCallGetArrElNode(FuncCallNode* newFuncCall, std::list<ExprNode*>* newIndexes)
+		: funcCall(newFuncCall),
+		  indexes(newIndexes)
+		{}
+
+	FuncCallNode* funcCall;
+	std::list<ExprNode*>* indexes;
 };
 
 class ArrElNode

@@ -73,7 +73,7 @@ namespace L3Compiler
 		bool PrintStatementProcess(PrintNode* node);
 		bool NewArrProcess(NewArrNode* node);
 		bool GetArrElProcess(ArrElNode* node);
-		bool ArrElProcess(ArrElNode* node);
+		bool ArrElProcess(std::list<ExprNode*>* indexes);
 
 		bool IsVoidType(const TypeNode& type);
 		bool IsIntType(const TypeNode& type);

@@ -53,7 +53,8 @@ FILE* out = NULL;
 	LeftValueNode* 		m_left_value_node;
 	ArrElNode*		m_arr_el_node;
 	ExprNode*		m_expr_node;
-	std::list<ExprNode*>*	m_expr_list;	
+	std::list<ExprNode*>*	m_expr_list;
+	//FuncCallGetArrElNode*	m_func_call_get_arr_el_node;
 }
 
 %right ASSIGN
@@ -63,7 +64,7 @@ FILE* out = NULL;
 %token CHAR CHAR_TYPE CHECK PRINT DO ELSE ELSEIF ENDFOR ENDFUNC ENDIF ENDPROC ENDWHILE FF FOR FUNC IF INT_TYPE NIL PROC REPEAT STEP THEN
 %token TO TT UNTIL WHILE LPAREN RPAREN RLPAREN RRPAREN COMMA SEMICOLON POINTER_METHOD ASSIGN PLUS MINUS DIVIDE MOD CAP EXCL
 %token LOG_CAP EQ NOT_EQ LSS_EQ GTR_EQ LSS GTR LOG_AND LOG_OR BOOL_TYPE VOID_TYPE
-%token IDENT STR NUMBER BOOL
+%token IDENT STR NUMBER BOOL FUNC_CALL_ARR_EL
 
 %type <m_number> 	NUMBER
 %type <m_ch> 		CHAR
@@ -123,6 +124,7 @@ FILE* out = NULL;
 %type <m_expr_list>		func_params
 %type <m_expr_list>		get_arr_indexes
 %type <m_expr_list>		func_params_rest
+//%type <m_func_call_get_arr_el_node>  func_call_get_arr_el
 
 %{
 	int yylex( YYSTYPE *yylval_param, YYLTYPE *yylloc_param, yyscan_t scanner );
@@ -326,16 +328,24 @@ var : IDENT
 
 assign : IDENT ASSIGN expr
 	    {
-		LeftValueNode* leftVal = new LeftValueNode( IDENT );
+		LeftValueNode* leftVal = new LeftValueNode(IDENT);
 		leftVal->ident = $1;
-		AssignNode* node = new AssignNode( leftVal, $3 );
+		AssignNode* node = new AssignNode(leftVal, $3);
 		$$ = node;
 	    }
 	| get_arr_element ASSIGN expr
 	    {
-		LeftValueNode* leftVal = new LeftValueNode( ARR_EL );
+		LeftValueNode* leftVal = new LeftValueNode(ARR_EL);
 		leftVal->arr_el = $1;
-		AssignNode* node = new AssignNode( leftVal, $3 );
+		AssignNode* node = new AssignNode(leftVal, $3);
+		$$ = node;
+	    }
+	| func_call get_arr_indexes ASSIGN expr
+	    {
+		LeftValueNode* leftVal = new LeftValueNode(FUNC_CALL_ARR_EL);
+		FuncCallGetArrElNode* funcCallGetArrEl = new FuncCallGetArrElNode($1, $2);
+		leftVal->funcCallGetArrEl = funcCallGetArrEl;
+		AssignNode* node = new AssignNode(leftVal, $4);
 		$$ = node;
 	    }
 	;

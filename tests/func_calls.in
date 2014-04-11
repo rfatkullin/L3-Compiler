@@ -1,0 +1,29 @@
+proc Func0()
+
+endproc
+
+func Func1(arg1->char) -> int
+
+	Func1 = 0;
+endfunc
+
+func Func2(arg1, arg2->char; arg3 -> [int]; arg4 -> [[[[int]]]]) -> int
+
+	Func2 = 0;
+endfunc
+
+func Sum(arg1, arg2 -> int) -> int
+
+	Sum = arg1 + arg2;
+endfunc
+
+func main (args->[[char]]) -> int
+
+	Func1('2');
+
+	Func2('1', '2', [int 5], [[[[int]]] 5]);
+
+	print Sum(2, 5);
+
+	main = 0;
+endfunc
