@@ -20,8 +20,7 @@ public :
 	void SubSignatureStart(TypeNode* returnType);
 	void SetSubName(const char* name);
 	void SetSubParamDef(TypeNode* typeNode, bool isContinious);
-	void SubSignatureEnd();
-    void MarkAsEntryPoint();
+	void SubSignatureEnd();    
     void BlockStart();
 	void BlockEnd(const char* subName, const std::map<const char*, Variable, StrCmp>& scopeVariables, bool isNeedRet);
 
@@ -89,7 +88,8 @@ private :
 	static const std::string ilClassName;
 	static const std::string ilAssemblyName;
 	static const std::string TwoTab;
-	static const std::string OneTab;	
+	static const std::string OneTab;
+	static const std::string StartFuncName;
 
     void Reset();
 
@@ -103,6 +103,8 @@ private :
 
 	void SetCondJumpToLabel(std::string label, bool onTrue);
 
+	bool AddModule(const char* fileName);
+
     FILE*       _output;
 
 	int			_savedStackDepth;
@@ -112,8 +114,7 @@ private :
     std::string _ilCode;
     int         _maxStackDepth;
     int         _currStackDepth;
-	int         _currLabelNum;
-    bool        _isEntryPoint;
+	int         _currLabelNum;    
 };
 
 #endif

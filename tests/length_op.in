@@ -1,0 +1,4 @@
+func main (args->[[char]]) -> int
+
+	main = 0;
+endfunc

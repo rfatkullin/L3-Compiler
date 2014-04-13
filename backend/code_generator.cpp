@@ -1,11 +1,13 @@
 #include <sstream>
 #include <string.h>
+#include <stdlib.h>
 #include "node.h"
 #include "parser.tab.h"
 #include "code_generator.h"
 
 const std::string CodeGenerator::ilClassName = "DummyClass";
 const std::string CodeGenerator::ilAssemblyName = "DummyAssembly";
+const std::string CodeGenerator::StartFuncName = "start_func";
 
 const std::string CodeGenerator :: TwoTab = "\t\t";
 const std::string CodeGenerator :: OneTab = "\t";
@@ -17,11 +19,35 @@ CodeGenerator :: CodeGenerator(const char* outputFilePath)
     Reset();
 }
 
+bool CodeGenerator :: AddModule(const char* fileName)
+{
+	std::string fileContent = "";
+	const int BuffSize = 100;
+	char buff[BuffSize];
+	FILE* file = fopen (fileName,"r");
+
+	if (file == NULL)
+		return false;
+
+	while(fgets (buff , BuffSize , file) != NULL)
+	{
+		fileContent += buff;
+	}
+
+	fclose (file);
+
+	fprintf(_output, "%s\n\n", fileContent.c_str());
+
+	return true;
+}
+
 void CodeGenerator :: Start()
 {
 	fprintf(_output, ".assembly %s {}\n", ilAssemblyName.c_str());
 	fprintf(_output, ".assembly extern mscorlib {}\n\n");
 	fprintf(_output, ".class public %s.%s\n{\n", ilAssemblyName.c_str(), ilClassName.c_str());
+
+	AddModule("../modules/main.il");
 }
 
 void CodeGenerator :: End()
@@ -39,8 +65,7 @@ void CodeGenerator :: Reset()
     _ilCode = "";
 	_maxStackDepth  = 0;
     _currStackDepth = 0;
-	_currLabelNum   = 0;
-    _isEntryPoint = false;
+	_currLabelNum   = 0;    
 }
 
 void CodeGenerator :: SubSignatureStart(TypeNode* returnType)
@@ -51,12 +76,15 @@ void CodeGenerator :: SubSignatureStart(TypeNode* returnType)
 }
 
 void CodeGenerator :: SetSubName(const char* name)
-{
-	_currSubName = name;
-	_currSubSig = std::string(name) + "(";
+{	
+	_currSubSig = "";
 
-    if (!strcmp(name, "main"))
-        _isEntryPoint = true;
+    if (!strcmp(name, "main"))	
+		_currSubName = StartFuncName.c_str();
+	else
+		_currSubName = name;
+
+	_currSubSig = _currSubSig + _currSubName + "(";
 }
 
 void CodeGenerator :: SetSubParamDef(TypeNode* typeNode, bool isContinious)
@@ -73,22 +101,13 @@ void CodeGenerator :: SubSignatureEnd()
 	fprintf(_output, ".method static %s %s\n", _currSubRetType.c_str(), _currSubSig.c_str());
 }
 
-
-void CodeGenerator :: MarkAsEntryPoint()
-{
-    fprintf(_output, ".entrypoint\n");
-}
-
 void CodeGenerator :: BlockStart()
 {	
     fprintf(_output, "{\n");
 }
 
 void CodeGenerator :: BlockEnd(const char* subName, const std::map<const char*, Variable, StrCmp>& scopeVariables,bool isNeedRet)
-{
-    if (_isEntryPoint)
-		fprintf(_output, "%s.entrypoint\n", TwoTab.c_str() );
-
+{    
 	fprintf(_output, "%s.maxstack %d\n", TwoTab.c_str(), _maxStackDepth);
 
 	std::string localsInit = TwoTab + ".locals init(";    
@@ -366,6 +385,9 @@ void CodeGenerator :: SetRet()
 
 void CodeGenerator :: SetSubCall(const char* subName)
 {	
+	if (!strcmp("main", subName))
+		subName = StartFuncName.c_str();
+
 	_ilCode += TwoTab + "call " + _subsFullName[subName] + "\n";
 }
 
