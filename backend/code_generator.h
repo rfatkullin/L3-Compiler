@@ -56,6 +56,7 @@ public :
 	void PrintInt();
 	void PrintChar();
 	void PrintBool();
+	void PrintString();
 
 	void SetSubCall(const char *subName);
 	void SetRet();

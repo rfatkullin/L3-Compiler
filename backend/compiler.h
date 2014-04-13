@@ -78,6 +78,7 @@ namespace L3Compiler
 		bool IsVoidType(const TypeNode& type);
 		bool IsIntType(const TypeNode& type);
 		bool IsCharType(const TypeNode& type);
+		bool IsStringType(const TypeNode& type);
 		bool IsBoolType(const TypeNode& type);
 		bool IsCharOrIntType(const TypeNode& type);
 

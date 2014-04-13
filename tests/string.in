@@ -1,0 +1,23 @@
+func AtoB(str -> [char]; len -> int) -> [char]
+	i -> int;
+
+	for i = 0 to len - 1 do
+		if (str[i] == 'A') then
+			str[i] = 'B';
+		elseif (str[i] == 'a') then
+			str[i] = 'b';
+		endif;
+	endfor;
+
+	AtoB = str;
+endfunc
+
+func main (args->[[char]]) -> int
+	str -> [char];
+
+	str = "Azaza";
+
+	print AtoB(str, 5);
+
+	main = 0;
+endfunc

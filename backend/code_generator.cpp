@@ -141,7 +141,8 @@ void CodeGenerator :: LoadStr(const char* str)
 {
     IncStackSize();
 
-    _ilCode = _ilCode + "ldstr " + str + "\n";
+	_ilCode += TwoTab + "ldstr \"" + str + "\"\n";
+	_ilCode += TwoTab + "callvirt instance char[] string::ToCharArray()\n";
 }
 
 void CodeGenerator :: LoadVariable(const Variable& var)
@@ -347,6 +348,13 @@ void CodeGenerator :: PrintChar()
 void CodeGenerator :: PrintBool()
 {
 	_ilCode += TwoTab + "call void [mscorlib]System.Console::WriteLine(bool)\n";
+
+	DecStackSize();
+}
+
+void CodeGenerator :: PrintString()
+{
+	_ilCode += TwoTab + "call void [mscorlib]System.Console::WriteLine(char[])\n";
 
 	DecStackSize();
 }

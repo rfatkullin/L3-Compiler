@@ -362,6 +362,11 @@ if_suffix : else_if ELSE statements
 		IfSuffixNode* node = new IfSuffixNode( $1, $3 );
 		$$ = node;
 	    }
+	| else_if
+	    {
+		IfSuffixNode* node = new IfSuffixNode($1, NULL);
+		$$ = node;
+	    }
 	| ELSE statements
 	    {
 		IfSuffixNode* node = new IfSuffixNode( NULL, $2 );
@@ -738,7 +743,7 @@ factor_ch : CHAR
 factor_str : STR
 	    {
 		ExprNode* node = new ExprNode();
-		node->op = STR;
+		node->op = STR;		
 		node->un.str = $1;
 		$$ = node;
 	    }

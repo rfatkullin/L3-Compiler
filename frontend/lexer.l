@@ -404,9 +404,10 @@ print		return PRINT;
 								}
 
 <STRING>\"						{
-									BEGIN( 0 );
-									yylval->m_str = (char*)tmpStr.c_str();
-									return STR;
+								    BEGIN( 0 );
+								    yylval->m_str = new char [ tmpStr.length() + 1 ];
+								    strcpy( yylval->m_str, tmpStr.c_str() );
+								    return STR;
 								}
 
 . 								{ printf( "%d = '%c'\n", yytext[ 0 ], yytext[ 0 ] ); Error( "Unexpected character!" );}

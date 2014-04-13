@@ -1,0 +1,30 @@
+func main (args->[[char]]) -> int
+
+	if (0 == 0) then
+		print "cond1";
+	endif;
+
+	if (0 == 1) then
+		print "cond2";
+	else
+		print "cond2_else"
+	endif;
+
+	if (0 == 1) then
+		print "cond3";
+	elseif (1 == 1) then
+		print "cond3_elseif"
+	endif;
+
+	if (0 == 1) then
+		print "cond4";
+	elseif (1 == 2) then
+		print "cond4_elseif";
+	elseif (1 == 3) then
+		print "cond4_elseif";
+	else
+		print "cond4_else";
+	endif;
+
+	main = 0;
+endfunc

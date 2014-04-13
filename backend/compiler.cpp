@@ -306,7 +306,7 @@ namespace L3Compiler
 			break;
 
 		case STR :
-			_stackValuesTypes.push(TypeNode(CHAR_TYPE, 1));
+			_stackValuesTypes.push(TypeNode(CHAR_TYPE, 1));			
 			_codeGen->LoadStr(node->un.str);
 			break;
 
@@ -583,6 +583,7 @@ namespace L3Compiler
 
 			CHECK_TRUE(FindVariable(node->left->ident, var));
 			ON_FALSE_ERR(TypeMatch(*var._type, _stackValuesTypes.top()), Msg::TypeMismatch);
+
 			_codeGen->SaveFromStack(var);
 			break;
 
@@ -594,6 +595,7 @@ namespace L3Compiler
 			type = *var._type;
 			type.dimen -= node->left->arr_el->indexes->size();
 			ON_FALSE_ERR(TypeMatch(type, _stackValuesTypes.top()), Msg::TypeMismatch);
+
 			_codeGen->SaveArrElem(type);
 			break;
 
@@ -601,10 +603,11 @@ namespace L3Compiler
 			CHECK_TRUE(FuncCallProcess(node->left->funcCallGetArrEl->funcCall))
 			type = _stackValuesTypes.top();
 			_stackValuesTypes.pop();
-			CHECK_TRUE(ArrElProcess(node->left->funcCallGetArrEl->indexes))
+			CHECK_TRUE(ArrElProcess(node->left->funcCallGetArrEl->indexes))\
 			CHECK_TRUE(ExprProcess(node->expr));
 			type.dimen -= node->left->funcCallGetArrEl->indexes->size();
 			ON_FALSE_ERR(TypeMatch(type, _stackValuesTypes.top()), Msg::TypeMismatch);
+
 			_codeGen->SaveArrElem(type);
 			break;
 
@@ -637,6 +640,10 @@ namespace L3Compiler
 		else if (IsBoolType(argType))
 		{
 			_codeGen->PrintBool();
+		}
+		else if (IsStringType(argType))
+		{
+			_codeGen->PrintString();
 		}
 		else
 			PRINT_ERR_RETURN(Msg::PrintTypeMismatch);
@@ -707,7 +714,7 @@ namespace L3Compiler
 				if (elseIfNode->else_if != NULL || node->suffix->statements != NULL )
 					next = _codeGen->SetCondJumpToNewLabel(false);
 				else
-					_codeGen->SetJumpTo(ifEndLabelNum);
+					_codeGen->SetCondJumpToLabel(ifEndLabelNum, false);
 
 				_stackValuesTypes.pop();
 
@@ -900,6 +907,11 @@ namespace L3Compiler
 	bool Compiler :: IsBoolType(const TypeNode& type)
 	{
 		return (type.type == BOOL_TYPE) && (type.dimen == 0);
+	}
+
+	bool Compiler :: IsStringType(const TypeNode& type)
+	{
+		return (type.type == CHAR_TYPE) && (type.dimen == 1);
 	}
 
 	Variable Compiler :: GetFreeTmpVar(const TypeNode& type)

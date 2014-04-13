@@ -18,7 +18,5 @@ L3-Compiler
 2) Bison выбирает наибольшее вхождение? ident или ident + ident.
 
 3) Обработка параметров main(в каком виде будет аргумент)
-
-4) Все еще не работает конструкция func(a1, a2)[i] = 1;
  
 Compiler for L3 language. With Flex/Bison/C++.
