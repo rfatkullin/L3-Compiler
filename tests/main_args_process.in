@@ -1,5 +1,11 @@
 func main (args->[[char]]) -> int
+	argsCnt = length(args) -> int;
 
+	print argsCnt;
+
+	for i = 0 -> int to argsCnt - 1 do
+		print args[i];
+	endfor;
 
 	main = 0;
 endfunc

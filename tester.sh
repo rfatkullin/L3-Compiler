@@ -3,6 +3,7 @@
 
 binaryFilePath="./test.exe"
 resFilePath="res.txt"
+args="first second third 4 5"
 red='\e[0;31m'
 green='\e[0;32m'
 NC='\e[0m' # No Color
@@ -43,7 +44,7 @@ do
 
 	chmod +x "${binaryFilePath}"
 
-	`${binaryFilePath} > ${resFilePath}`
+	`${binaryFilePath} ${args} > ${resFilePath}`
 
 	if [ "$?" != 0 ] ; then
 	    Fail "[execute]" "${inFile}"
