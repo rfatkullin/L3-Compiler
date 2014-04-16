@@ -1,4 +1,41 @@
+proc PrintFunc(a -> int)
+	print a;
+endproc
+
+func Sqr(a -> int) -> int
+	Sqr = a a;
+endfunc
+
 func main (args->[[char]]) -> int
+	a = 1 -> int;
+	b = 9 -> int;
+	arr = [int 5] -> [int];
+	mult_arr = [[int] 2] -> [[int]];
+	sum = 0 -> int;
+
+	print a b;
+
+	arr[0] = 6;
+
+	print arr[0];
+
+	print arr[0] arr[0];
+
+	mult_arr[0] = [int 10];
+
+	mult_arr[0][5] = 20;
+
+	print mult_arr[0][5];
+
+	sum = sum + (mult_arr[0][5] mult_arr[0][5]);
+
+	print sum;
+
+	PrintFunc(20);
+
+	print Sqr(2) (Sqr(3) Sqr(5));
+
+	print Sqr(3) mult_arr[0][5];
 
 	main = 0;
 endfunc

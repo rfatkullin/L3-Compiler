@@ -253,6 +253,12 @@ void CodeGenerator :: LogNotOperator()
 	DecStackSize();
 }
 
+void CodeGenerator :: MultOperator()
+{
+	_ilCode += TwoTab + "mul\n";
+	DecStackSize();
+}
+
 void CodeGenerator :: DivOperator()
 {
 	_ilCode += TwoTab + "div\n";

@@ -54,31 +54,28 @@ FILE* out = NULL;
 	ArrElNode*		m_arr_el_node;
 	ExprNode*		m_expr_node;
 	std::list<ExprNode*>*	m_expr_list;
-	//FuncCallGetArrElNode*	m_func_call_get_arr_el_node;
 }
 
 %right ASSIGN
 %left PLUS MINUS
 %left MULTIPLY DIVIDE MOD
+%left FUNC_CALL
+%left UMINUS
 
 %token CHAR CHAR_TYPE CHECK PRINT DO ELSE ELSEIF ENDFOR ENDFUNC ENDIF ENDPROC ENDWHILE FF FOR FUNC IF INT_TYPE NIL PROC REPEAT STEP THEN
-%token TO TT UNTIL WHILE LPAREN RPAREN RLPAREN RRPAREN COMMA SEMICOLON POINTER_METHOD ASSIGN PLUS MINUS DIVIDE MOD CAP EXCL
+%token TO TT UNTIL WHILE LPAREN RPAREN RLPAREN RRPAREN COMMA SEMICOLON POINTER_METHOD ASSIGN PLUS DIVIDE MOD CAP EXCL
 %token LOG_CAP EQ NOT_EQ LSS_EQ GTR_EQ LSS GTR LOG_AND LOG_OR BOOL_TYPE VOID_TYPE
 %token IDENT STR NUMBER BOOL FUNC_CALL_ARR_EL
-
-%type <m_number> 	NUMBER
-%type <m_ch> 		CHAR
-%type <m_str> 		STR
-%type <m_ident>		IDENT
-
 %token VARS_DEF
-%token FUNC_CALL
 %token EXPR
 %token NEW_ARR
 %token ARR_EL
-%token UMINUS
 %token UNARY
 
+%type <m_number>		NUMBER
+%type <m_ch>			CHAR
+%type <m_str>			STR
+%type <m_ident>			IDENT
 %type <m_subs_def_node> 	start
 %type <m_subs_def_node> 	program
 %type <m_sub_def_node> 		subprogram_def
@@ -121,10 +118,10 @@ FILE* out = NULL;
 %type <m_expr_node>		factor_ch
 %type <m_expr_node>		factor_str
 %type <m_expr_node>		factor_bool
+%type <m_expr_node>		multiply
 %type <m_expr_list>		func_params
 %type <m_expr_list>		get_arr_indexes
 %type <m_expr_list>		func_params_rest
-//%type <m_func_call_get_arr_el_node>  func_call_get_arr_el
 
 %{
 	int yylex( YYSTYPE *yylval_param, YYLTYPE *yylloc_param, yyscan_t scanner );
@@ -590,17 +587,7 @@ term_2 : term_1 PLUS term_1
 	;
 
 
-term_1 :
-	/*pow_factor pow_factor
-		{
-		    ExprNode* node = new ExprNode();
-		    node->op = MULTIPLY;
-		    node->bin.left_expr = $1;
-		    node->bin.right_expr = $2;
-		    $$ = node;
-		}
-	| */
-	pow_factor
+term_1 : pow_factor
 	    {
 		ExprNode* node = new ExprNode();
 		node->op = UNARY;
@@ -623,6 +610,23 @@ term_1 :
 		node->bin.right_expr = $3;
 		$$ = node;
 	    }
+	|multiply
+	    {
+		ExprNode* node = new ExprNode();
+		node->op = UNARY;
+		node->un.expr = $1;
+		$$ = node;
+	    }
+	;
+
+multiply : pow_factor pow_factor %prec MULTIPLY
+	    {
+		ExprNode* node = new ExprNode();
+		node->op = MULTIPLY;
+		node->bin.left_expr = $1;
+		node->bin.right_expr = $2;
+		$$ = node;
+	    }
 	;
 
 pow_factor : ufactor CAP ufactor
@@ -642,18 +646,18 @@ pow_factor : ufactor CAP ufactor
 	    }
 	;
 
-ufactor : MINUS factor
+ufactor : LPAREN MINUS factor RPAREN
 	    {
 		ExprNode* node = new ExprNode();
 		node->op = UMINUS;
-		node->un.expr = $2;
+		node->un.expr = $3;
 		$$ = node;
 	    }
-	| EXCL factor
+	| LPAREN EXCL factor RPAREN
 	    {
 		ExprNode* node = new ExprNode();
 		node->op = EXCL;
-		node->un.expr = $2;
+		node->un.expr = $3;
 		$$ = node;
 	    }
 	| factor

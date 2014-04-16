@@ -36,6 +36,7 @@ public :
 	void LogXorOperator();
 	void LogNotOperator();
 
+	void MultOperator();
 	void DivOperator();
 	void ModOperator();
 	void PowOperator(int tmpLocVarInd);

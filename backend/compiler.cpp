@@ -489,6 +489,9 @@ namespace L3Compiler
 
 			switch (node->op)
 			{
+				case MULTIPLY :
+					_codeGen->MultOperator();
+					break;
 				case DIVIDE :
 					_codeGen->DivOperator();
 					break;
