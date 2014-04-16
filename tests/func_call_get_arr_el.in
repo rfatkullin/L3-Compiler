@@ -10,7 +10,7 @@ func main (args->[[char]]) -> int
 
 	GetArr(a)[0] = 100500;
 
-	print a[0];
+	print(a[0]);
 
 	main = 0;
 endfunc

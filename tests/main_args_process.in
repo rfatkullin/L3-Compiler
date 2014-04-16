@@ -1,10 +1,10 @@
 func main (args->[[char]]) -> int
 	argsCnt = length(args) -> int;
 
-	print argsCnt;
+	print(argsCnt);
 
 	for i = 0 -> int to argsCnt - 1 do
-		print args[i];
+		print(args[i]);
 	endfor;
 
 	main = 0;

@@ -1,11 +1,11 @@
 func main (args->[[char]]) -> int
 
 	for a = 0 -> int to 5 do
-		print a;
+		print(a);
 	endfor;
 
 	for b = 0 -> int to 5 step 2 do
-		print b;
+		print(b);
 	endfor;
 
 	main = 0;

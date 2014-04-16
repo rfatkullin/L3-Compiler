@@ -292,9 +292,9 @@ check : CHECK expr
 	    }
 	;
 
-print : PRINT expr
+print : PRINT LPAREN expr RPAREN
 	    {
-		PrintNode* node = new PrintNode($2);
+		PrintNode* node = new PrintNode($3);
 		$$ = node;
 	    }
 	;

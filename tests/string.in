@@ -17,7 +17,7 @@ func main (args->[[char]]) -> int
 
 	str = "Azaza";
 
-	print AtoB(str, 5);
+	print(AtoB(str, 5));
 
 	main = 0;
 endfunc
