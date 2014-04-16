@@ -70,7 +70,10 @@ namespace L3Compiler
 		bool CheckStatementProcess(CheckNode* node);		
 		bool ExprAssignProcess(Variable var, ExprNode* node);
 		bool ExprProcess(ExprNode* node);
+
 		bool PrintStatementProcess(PrintNode* node);
+		bool LengthStatementProcess(LengthNode* node);
+
 		bool NewArrProcess(NewArrNode* node);
 		bool GetArrElProcess(ArrElNode* node);
 		bool ArrElProcess(std::list<ExprNode*>* indexes);

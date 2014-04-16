@@ -211,6 +211,10 @@ namespace L3Compiler
 					CHECK_TRUE(PrintStatementProcess(stm->print));
 					break;
 
+				case LENGTH :
+					CHECK_TRUE(LengthStatementProcess(stm->length));
+					break;
+
 				default :
 					printf("Unexpected operator!\n");
 					return false;
@@ -346,6 +350,10 @@ namespace L3Compiler
 			CHECK_TRUE(GetArrElProcess(node->un.arr_el));
 			break;
 
+		case LENGTH :
+			CHECK_TRUE(LengthStatementProcess(node->un.length));
+			break;
+
 		default :
 			isUnary = false;
 			break;
@@ -440,13 +448,13 @@ namespace L3Compiler
 			_stackValuesTypes.pop();
 			if (IsIntType(type1) && IsIntType(type2))
 			{
-				_codeGen->Add();
+				_codeGen->AddOperator();
 				_stackValuesTypes.push(TypeNode(INT_TYPE, 0));
 			}
 			else if (IsIntType(type1)  && IsCharType(type2) ||
 					 IsCharType(type1) && IsIntType(type2))
 			{
-				_codeGen->Add();
+				_codeGen->AddOperator();
 				_stackValuesTypes.push(TypeNode(CHAR_TYPE, 0));
 			}
 			else
@@ -461,12 +469,12 @@ namespace L3Compiler
 			if (IsIntType(type1)  && IsIntType(type2) ||
 				IsCharType(type1) && IsCharType(type2))
 			{
-				_codeGen->Sub();
+				_codeGen->SubOperator();
 				_stackValuesTypes.push(TypeNode(INT_TYPE, 0));
 			}
 			else if (IsCharType(type1) && IsIntType(type2))
 			{
-				_codeGen->Sub();
+				_codeGen->SubOperator();
 				_stackValuesTypes.push(TypeNode(CHAR_TYPE, 0));
 			}
 			else
@@ -655,6 +663,20 @@ namespace L3Compiler
 		return true;
 	}
 
+	bool Compiler :: LengthStatementProcess(LengthNode* node)
+	{
+		CHECK_TRUE(ExprProcess(node->expr));
+
+		ON_FALSE_ERR(_stackValuesTypes.top().dimen > 0, Msg::TypeMismatch);
+
+		_codeGen->LengthOperator();
+
+		_stackValuesTypes.pop();
+		_stackValuesTypes.push(TypeNode(INT_TYPE, 0));
+
+		return true;
+	}
+
 	bool Compiler :: FuncCallProcess(FuncCallNode* node)
 	{
 		SubsMap::iterator funcRecIt = _subs.find(node->ident);
@@ -805,7 +827,7 @@ namespace L3Compiler
 
 		_codeGen->LoadVariable(counterVar);
 		_codeGen->LoadVariable(stepExprVar);
-		_codeGen->Add();
+		_codeGen->AddOperator();
 		_codeGen->SaveFromStack(counterVar);
 		_codeGen->SetJumpTo(loopBeginCondLabel);
 		_codeGen->SetLabel(LoopEndLabelNum);

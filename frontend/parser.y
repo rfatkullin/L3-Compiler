@@ -42,6 +42,7 @@ FILE* out = NULL;
 	RepeatNode* 		m_repeat_node;
 	CheckNode*	    	m_check_node;
 	PrintNode*		m_print_node;
+	LengthNode*		m_length_node;
 	FuncCallNode* 		m_func_call_node;
 	ForNode*	    	m_for_node;
 	ForFromParamNode* 	m_for_param_node;
@@ -65,7 +66,7 @@ FILE* out = NULL;
 %token CHAR CHAR_TYPE CHECK PRINT DO ELSE ELSEIF ENDFOR ENDFUNC ENDIF ENDPROC ENDWHILE FF FOR FUNC IF INT_TYPE NIL PROC REPEAT STEP THEN
 %token TO TT UNTIL WHILE LPAREN RPAREN RLPAREN RRPAREN COMMA SEMICOLON POINTER_METHOD ASSIGN PLUS DIVIDE MOD CAP EXCL
 %token LOG_CAP EQ NOT_EQ LSS_EQ GTR_EQ LSS GTR LOG_AND LOG_OR BOOL_TYPE VOID_TYPE
-%token IDENT STR NUMBER BOOL FUNC_CALL_ARR_EL
+%token IDENT STR NUMBER BOOL FUNC_CALL_ARR_EL LENGTH
 %token VARS_DEF
 %token EXPR
 %token NEW_ARR
@@ -95,6 +96,7 @@ FILE* out = NULL;
 %type <m_repeat_node>		repeat
 %type <m_check_node>		check
 %type <m_print_node>		print
+%type <m_length_node>		length
 %type <m_func_call_node>	func_call
 %type <m_for_node>		for
 %type <m_for_param_node>	for_from_param
@@ -275,6 +277,12 @@ statement : vars_def
 		node->print = $1;
 		$$ = node;
 	    }
+	| length
+	    {
+		StatementNode* node = new StatementNode(LENGTH);
+		node->length = $1;
+		$$ = node;
+	    }
 	;
 
 check : CHECK expr
@@ -287,6 +295,13 @@ check : CHECK expr
 print : PRINT expr
 	    {
 		PrintNode* node = new PrintNode($2);
+		$$ = node;
+	    }
+	;
+
+length : LENGTH LPAREN expr RPAREN
+	    {
+		LengthNode* node = new LengthNode($3);
 		$$ = node;
 	    }
 	;
@@ -708,6 +723,13 @@ factor : factor_number
 		ExprNode* node = new ExprNode();
 		node->op = NEW_ARR;
 		node->un.new_arr = $1;
+		$$ = node;
+	    }
+	| length
+	    {
+		ExprNode* node = new ExprNode();
+		node->op = LENGTH;
+		node->un.length = $1;
 		$$ = node;
 	    }
 	| LPAREN expr RPAREN

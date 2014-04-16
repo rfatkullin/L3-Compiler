@@ -139,6 +139,7 @@ tt 		return TT;
 until 		return UNTIL;
 while 		return WHILE;
 print		return PRINT;
+length		return LENGTH;
 
 {IDENT}		{
 				yylval->m_ident = new char[ strlen( yytext ) + 1 ];

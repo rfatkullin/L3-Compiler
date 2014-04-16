@@ -306,16 +306,23 @@ void CodeGenerator :: NotOperator()
 	_ilCode += TwoTab + "not\n";
 }
 
-void CodeGenerator :: Add()
+void CodeGenerator :: AddOperator()
 {
 	_ilCode += TwoTab + "add\n";
 
 	DecStackSize();
 }
 
-void CodeGenerator :: Sub()
+void CodeGenerator :: SubOperator()
 {
 	_ilCode += TwoTab + "sub\n";
+
+	DecStackSize();
+}
+
+void CodeGenerator :: LengthOperator()
+{
+	_ilCode += TwoTab + "ldlen\n";
 
 	DecStackSize();
 }

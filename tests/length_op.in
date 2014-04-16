@@ -1,4 +1,16 @@
 func main (args->[[char]]) -> int
+	a -> int;
+	arr = [[int] 3] -> [[int]];
+
+	print length(args);
+
+	print length(arr);
+
+	arr[0] = [int 1];
+	arr[1] = [int 20];
+	arr[2] = [int 100];
+
+	print length(arr[0]) (length(arr[1]) length(arr[2]));
 
 	main = 0;
 endfunc

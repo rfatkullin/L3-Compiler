@@ -36,6 +36,7 @@ class NewArrNode;
 class LeftValueNode;
 class ArrElNode;
 class FuncCallGetArrElNode;
+class LengthNode;
 
 class SubsDefNode
 {
@@ -169,6 +170,7 @@ public :
 		RepeatNode*		repeat;
 		CheckNode*		check;
 		PrintNode*		print;
+		LengthNode*		length;
 	};
 };
 
@@ -187,6 +189,16 @@ class PrintNode
 public :
 	PrintNode(ExprNode* toPrintExpr)
 		: expr(toPrintExpr)
+		{}
+
+	ExprNode* expr;
+};
+
+class LengthNode
+{
+public :
+	LengthNode(ExprNode* newExpr)
+		: expr(newExpr)
 		{}
 
 	ExprNode* expr;
@@ -447,6 +459,7 @@ public :
 			ArrElNode* 		arr_el;
 			NewArrNode*		new_arr;
 			FuncCallNode* 	func_call;
+			LengthNode*		length;
 		} un;
 	};
 };

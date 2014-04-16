@@ -43,8 +43,10 @@ public :
 
 	void NegOperator();
 	void NotOperator();
-	void Add();
-	void Sub();
+	void AddOperator();
+	void SubOperator();
+
+	void LengthOperator();
 
 	void EqOperator();
 	void NotEqOperator();
