@@ -19,35 +19,47 @@ CodeGenerator :: CodeGenerator(const char* outputFilePath)
     Reset();
 }
 
-bool CodeGenerator :: AddModule(const char* fileName)
-{
-	std::string fileContent = "";
-	const int BuffSize = 100;
-	char buff[BuffSize];
-	FILE* file = fopen (fileName,"r");
-
-	if (file == NULL)
-		return false;
-
-	while(fgets (buff , BuffSize , file) != NULL)
-	{
-		fileContent += buff;
-	}
-
-	fclose (file);
-
-	fprintf(_output, "%s\n\n", fileContent.c_str());
-
-	return true;
-}
-
 void CodeGenerator :: Start()
 {
 	fprintf(_output, ".assembly %s {}\n", ilAssemblyName.c_str());
 	fprintf(_output, ".assembly extern mscorlib {}\n\n");
-	fprintf(_output, ".class public %s.%s\n{\n", ilAssemblyName.c_str(), ilClassName.c_str());
+	fprintf(_output, ".class public %s.%s\n{\n", ilAssemblyName.c_str(), ilClassName.c_str());	
 
-	AddModule("../modules/main.il");
+	fprintf(_output, "%s",
+	".method static int32 main(string[])								\n"
+	"{																	\n"
+	"		.entrypoint 												\n"
+	"		.maxstack 5													\n"
+	"		.locals init ( char[][]	V_0, int32 V_1) 					\n"
+	" 																	\n"
+	"		ldarg.0 													\n"
+	"		ldlen 														\n"
+	"		conv.i4 													\n"
+	"		newarr char[] 												\n"
+	"		stloc.0 													\n"
+	"		ldc.i4.0 													\n"
+	"		stloc.1 													\n"
+	"		br IL_001f 													\n"
+	"	IL_0010:  ldloc.0 												\n"
+	"		ldloc.1 													\n"
+	"		ldarg.0 													\n"
+	"		ldloc.1 													\n"
+	"		ldelem.ref													\n"
+	"		callvirt instance char[] string::ToCharArray()				\n"
+	"		stelem.ref	 												\n"
+	"		ldloc.1 													\n"
+	"		ldc.i4.1 													\n"
+	"		add 														\n"
+	"		stloc.1 													\n"
+	"	IL_001f:  ldloc.1 												\n"
+	"		ldarg.0 													\n"
+	"		ldlen 														\n"
+	"		conv.i4 													\n"
+	"		blt IL_0010 												\n"
+	"		ldloc.0 													\n"
+	"		call int32 DummyAssembly.DummyClass::start_func(char[][])	\n"
+	"		ret															\n"
+	"} // main															\n");
 }
 
 void CodeGenerator :: End()

@@ -102,9 +102,7 @@ private :
 
 	std::map<const char*, std::string, StrCmp> _subsFullName;
 
-	void SetCondJumpToLabel(std::string label, bool onTrue);
-
-	bool AddModule(const char* fileName);
+	void SetCondJumpToLabel(std::string label, bool onTrue);	
 
     FILE*       _output;
 
