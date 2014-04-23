@@ -89,10 +89,11 @@ public :
 private :
 
 	static const std::string ilClassName;
-	static const std::string ilAssemblyName;
+	static const std::string ilAssemblyName;	
 	static const std::string TwoTab;
 	static const std::string OneTab;
-	static const std::string StartFuncName;
+	static const std::string SubCallDecorator;
+	static int SubCallDecoratorLength;
 
     void Reset();
 
@@ -109,7 +110,7 @@ private :
     FILE*       _output;
 
 	int			_savedStackDepth;
-	const char* _currSubName;
+	char*		_currSubName;
 	std::string _currSubSig;
 	std::string _currSubRetType;
     std::string _ilCode;

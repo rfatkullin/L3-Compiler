@@ -7,14 +7,17 @@
 
 const std::string CodeGenerator::ilClassName = "DummyClass";
 const std::string CodeGenerator::ilAssemblyName = "DummyAssembly";
-const std::string CodeGenerator::StartFuncName = "start_func";
-
 const std::string CodeGenerator :: TwoTab = "\t\t";
 const std::string CodeGenerator :: OneTab = "\t";
+const std::string CodeGenerator :: SubCallDecorator = "L3_";
+int CodeGenerator :: SubCallDecoratorLength;
 
 CodeGenerator :: CodeGenerator(const char* outputFilePath)
 {
-    _output = fopen(outputFilePath, "w");
+	_currSubName = NULL;
+	SubCallDecoratorLength = SubCallDecorator.length();
+
+	_output = fopen(outputFilePath, "w");
 
     Reset();
 }
@@ -25,7 +28,7 @@ void CodeGenerator :: Start()
 	fprintf(_output, ".assembly extern mscorlib {}\n\n");
 	fprintf(_output, ".class public %s.%s\n{\n", ilAssemblyName.c_str(), ilClassName.c_str());	
 
-	fprintf(_output, "%s",
+	fprintf(_output,
 	".method static int32 main(string[])								\n"
 	"{																	\n"
 	"		.entrypoint 												\n"
@@ -57,9 +60,10 @@ void CodeGenerator :: Start()
 	"		conv.i4 													\n"
 	"		blt IL_0010 												\n"
 	"		ldloc.0 													\n"
-	"		call int32 DummyAssembly.DummyClass::start_func(char[][])	\n"
+	"		call int32 DummyAssembly.DummyClass::%smain(char[][])		\n"
 	"		ret															\n"
-	"} // main															\n");
+	"} // main															\n",
+	SubCallDecorator.c_str());
 }
 
 void CodeGenerator :: End()
@@ -69,6 +73,9 @@ void CodeGenerator :: End()
 
 CodeGenerator :: ~CodeGenerator()
 {
+	if (_currSubName != NULL)
+		delete [] _currSubName;
+
     fclose(_output);
 }
 
@@ -88,15 +95,12 @@ void CodeGenerator :: SubSignatureStart(TypeNode* returnType)
 }
 
 void CodeGenerator :: SetSubName(const char* name)
-{	
-	_currSubSig = "";
+{
+	_currSubName = new char [strlen(name) + SubCallDecorator.length() + 1];
+	strcpy(_currSubName, SubCallDecorator.c_str());
+	strcpy(_currSubName + SubCallDecoratorLength, name);
 
-    if (!strcmp(name, "main"))	
-		_currSubName = StartFuncName.c_str();
-	else
-		_currSubName = name;
-
-	_currSubSig = _currSubSig + _currSubName + "(";
+	_currSubSig = std::string(_currSubName) + "(";
 }
 
 void CodeGenerator :: SetSubParamDef(TypeNode* typeNode, bool isContinious)
@@ -409,11 +413,8 @@ void CodeGenerator :: SetRet()
 }
 
 void CodeGenerator :: SetSubCall(const char* subName)
-{	
-	if (!strcmp("main", subName))
-		subName = StartFuncName.c_str();
-
-	_ilCode += TwoTab + "call " + _subsFullName[subName] + "\n";
+{
+	_ilCode += TwoTab + "call " + _subsFullName[(SubCallDecorator + subName).c_str()] + "\n";
 }
 
 int CodeGenerator :: SetNewLabel()
