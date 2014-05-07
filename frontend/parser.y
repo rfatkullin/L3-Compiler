@@ -801,17 +801,10 @@ factor_bool : TT
 	;
 
 
-get_arr_element : IDENT RLPAREN expr RRPAREN get_arr_indexes
-	    {
-		$5->push_back($3);
-		ArrElNode* node = new ArrElNode( $1, $5);
+get_arr_element : IDENT get_arr_indexes
+	    {		
+		ArrElNode* node = new ArrElNode($1, $2);
 		$$ = node;
-	    }
-	| IDENT RLPAREN expr RRPAREN
-	    {
-		std::list<ExprNode*>* lst = new std::list<ExprNode*>();
-		lst->push_back($3);
-		$$ = new ArrElNode($1, lst);
 	    }
 	;
 
