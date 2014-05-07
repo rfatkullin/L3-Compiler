@@ -87,18 +87,13 @@ void CodeGenerator :: Reset()
 	_currLabelNum   = 0;    
 }
 
-void CodeGenerator :: SubSignatureStart(TypeNode* returnType)
+void CodeGenerator :: SubSignatureStart(TypeNode* returnType, const char* subName)
 {
-	Reset();
-
 	_currSubRetType = TypeToString(returnType);
-}
 
-void CodeGenerator :: SetSubName(const char* name)
-{
-	_currSubName = new char [strlen(name) + SubCallDecorator.length() + 1];
+	_currSubName = new char [strlen(subName) + SubCallDecorator.length() + 1];
 	strcpy(_currSubName, SubCallDecorator.c_str());
-	strcpy(_currSubName + SubCallDecoratorLength, name);
+	strcpy(_currSubName + SubCallDecoratorLength, subName);
 
 	_currSubSig = std::string(_currSubName) + "(";
 }
@@ -112,13 +107,17 @@ void CodeGenerator :: SubSignatureEnd()
 {
 	_currSubSig += ")";
 
-	_subsFullName.insert(std::make_pair(_currSubName, _currSubRetType + " " + ilAssemblyName + "." + ilClassName + "::" + _currSubSig));	
-
-	fprintf(_output, ".method static %s %s\n", _currSubRetType.c_str(), _currSubSig.c_str());
+	_subsSignatures.insert(std::make_pair(_currSubName, new SubSignature(_currSubRetType, _currSubSig)));
 }
 
-void CodeGenerator :: BlockStart()
+void CodeGenerator :: BlockStart(const char* subName)
 {	
+	Reset();
+
+	std::map<const char*, SubSignature*, StrCmp>::iterator it = _subsSignatures.find((SubCallDecorator + subName).c_str());
+
+	fprintf(_output, ".method static %s %s\n", it->second->retType.c_str(), it->second->signature.c_str());
+
     fprintf(_output, "{\n");
 }
 
@@ -414,7 +413,9 @@ void CodeGenerator :: SetRet()
 
 void CodeGenerator :: SetSubCall(const char* subName)
 {
-	_ilCode += TwoTab + "call " + _subsFullName[(SubCallDecorator + subName).c_str()] + "\n";
+	std::map<const char*, SubSignature*, StrCmp>::iterator it = _subsSignatures.find((SubCallDecorator + subName).c_str());
+
+	_ilCode += TwoTab + "call " + it->second->retType + " " + ilAssemblyName + "." + ilClassName + "::" + it->second->signature + "\n";
 }
 
 int CodeGenerator :: SetNewLabel()

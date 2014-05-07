@@ -1,0 +1,26 @@
+proc proc0()
+	print("proc0");
+endproc
+
+func main (args->[[char]]) -> int
+
+	proc0();
+	proc1();
+	proc3();
+
+	main = 0;
+endfunc
+
+proc proc1()
+	print("proc1");
+
+	proc2();
+endproc
+
+proc proc2()
+	print("proc2");
+endproc
+
+proc proc3()
+	print("proc3");
+endproc

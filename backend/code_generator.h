@@ -7,21 +7,32 @@
 #include "variable.h"
 #include "utility.h"
 
-
 class CodeGenerator
-{
+{	
 public :
+
+	struct SubSignature
+	{
+		SubSignature(const std::string& newRetType, const std::string& newSignature)
+		{
+			retType = newRetType;
+			signature = newSignature;
+		}
+
+		std::string retType;
+		std::string signature;
+	};
+
     CodeGenerator(const char* outputFilePath);
     ~CodeGenerator();
 
 	void Start();
 	void End();
 
-	void SubSignatureStart(TypeNode* returnType);
-	void SetSubName(const char* name);
+	void SubSignatureStart(TypeNode* returnType, const char* subName);
 	void SetSubParamDef(TypeNode* typeNode, bool isContinious);
 	void SubSignatureEnd();    
-    void BlockStart();
+	void BlockStart(const char* subName);
 	void BlockEnd(const char* subName, const std::map<const char*, Variable, StrCmp>& scopeVariables, bool isNeedRet);
 
     void LoadIntConst(int num);
@@ -103,7 +114,7 @@ private :
 	std::string GetNewLabel(int* labelNum);
 	std::string GetLabelNameByNum(int labelNum);
 
-	std::map<const char*, std::string, StrCmp> _subsFullName;
+	std::map<const char*, SubSignature*, StrCmp> _subsSignatures;
 
 	void SetCondJumpToLabel(std::string label, bool onTrue);	
 

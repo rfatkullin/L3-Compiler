@@ -85,6 +85,15 @@ namespace L3Compiler
 
 		_codeGen->Start();
 
+		//Получаем все сигнатуры
+		while (node)
+		{
+			CHECK_TRUE(SignatureProcess(node->def->type, node->def->signature));
+			node = node->tail;
+		};
+
+		node = _program;
+		//Генерация кода
 		while (node)
 		{
 			CHECK_TRUE(SubDefNodeProcess(node->def));
@@ -94,17 +103,47 @@ namespace L3Compiler
 		_codeGen->End();
 
 		return true;
+	}	
+
+	bool Compiler :: SignatureProcess(TypeNode* type, SigNode* sig)
+	{
+		_codeGen->SubSignatureStart(type, sig->funcName);
+
+		_currSubName = sig->funcName;
+
+		SigNode::SubParams* params = sig->params;
+
+		if (params->size() > 0)
+		{
+			SigNode::SubParams::iterator lastElIt = --params->end();
+			for (SigNode::SubParams::iterator it = params->begin(); it != params->end(); ++it)
+				_codeGen->SetSubParamDef(it->second, it != lastElIt);
+		}
+
+		_codeGen->SubSignatureEnd();
+
+		_subs.insert(std::make_pair(sig->funcName, std::make_pair(type, sig->params)));
+
+		return true;
+	}
+
+	bool Compiler :: AddSubParamsToScope(SigNode::SubParams* params)
+	{
+		for (SigNode::SubParams::iterator it = params->begin(); it != params->end(); ++it)
+			CHECK_TRUE(AddScopeVar(it->first, _blockArgsCount++, it->second, true));
+
+		return true;
 	}
 
 	bool Compiler :: SubDefNodeProcess(SubDefNode* node)
 	{
 		EnterTheBlock();
 
-		_codeGen->SubSignatureStart(node->type);
+		_currSubName = node->signature->funcName;
 
-		CHECK_TRUE(SignatureProcess(node->type, node->signature));
+		AddSubParamsToScope(node->signature->params);
 
-		_codeGen->BlockStart();
+		_codeGen->BlockStart(_currSubName);
 
 		CHECK_TRUE(StatementsProcess(node->statements));
 
@@ -115,33 +154,6 @@ namespace L3Compiler
 
 		return true;
 	}
-
-	bool Compiler :: SignatureProcess(TypeNode* type, SigNode* sig)
-	{		
-		_codeGen->SubSignatureStart(type);
-		_codeGen->SetSubName(sig->funcName);
-
-		_currSubName = sig->funcName;
-
-		SigNode::SubParams* params = sig->params;
-
-		if (params->size() > 0)
-		{
-			SigNode::SubParams::iterator lastElIt = --params->end();
-			for (SigNode::SubParams::iterator it = params->begin(); it != params->end(); ++it)
-			{
-				CHECK_TRUE(AddScopeVar(it->first, _blockArgsCount++, it->second, true));
-
-				_codeGen->SetSubParamDef(it->second, it != lastElIt);
-			}
-		}
-
-		_codeGen->SubSignatureEnd();
-
-		_subs.insert(std::make_pair(sig->funcName, std::make_pair(type, sig->params)));
-
-		return true;
-	}    
 
 	void Compiler :: EnterTheBlock()
 	{
