@@ -711,7 +711,7 @@ namespace L3Compiler
 			_stackValuesTypes.pop();
 		}
 
-		_codeGen->SetSubCall(funcRecIt->first);
+		_codeGen->SetSubCall(funcRecIt->first, factParams->size());
 
 		if (!IsVoidType(*funcRecIt->second.first))
 			_stackValuesTypes.push(*funcRecIt->second.first);

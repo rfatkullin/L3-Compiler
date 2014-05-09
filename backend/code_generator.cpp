@@ -220,6 +220,11 @@ void CodeGenerator :: DecStackSize()
     --_currStackDepth;
 }
 
+void CodeGenerator :: DecStackSize(int decVal)
+{
+	_currStackDepth -= decVal;
+}
+
 void CodeGenerator :: SaveStackDepth()
 {
 	_savedStackDepth = _currStackDepth;
@@ -409,11 +414,14 @@ void CodeGenerator :: SetRet()
 	_ilCode += TwoTab + "ret\n";
 }
 
-void CodeGenerator :: SetSubCall(const char* subName)
+void CodeGenerator :: SetSubCall(const char* subName, int paramsCnt)
 {
 	std::map<const char*, SubSignature*, StrCmp>::iterator it = _subsSignatures.find((SubCallDecorator + subName).c_str());
 
 	_ilCode += TwoTab + "call " + it->second->retType + " " + ilAssemblyName + "." + ilClassName + "::" + it->second->signature + "\n";
+
+	//так как убираем со стека аргументы, но функция возвращает результат ->
+	DecStackSize(paramsCnt - 1);
 }
 
 int CodeGenerator :: SetNewLabel()
@@ -476,11 +484,15 @@ void CodeGenerator :: LoadArrElem(const TypeNode& type)
 		_ilCode += "ldelem.ref";
 
 	_ilCode += "\n";
+
+	DecStackSize();
 }
 
 void CodeGenerator :: LoadArrObj()
 {
 	_ilCode += TwoTab + "ldelem.ref\n";
+
+	DecStackSize();
 }
 
 void CodeGenerator :: SaveArrElem(const TypeNode& type)
@@ -493,6 +505,9 @@ void CodeGenerator :: SaveArrElem(const TypeNode& type)
 		_ilCode += "stelem.ref";
 
 	_ilCode += "\n";
+
+	//Так как "... , array, index, value -> ..."
+	DecStackSize(3);
 }
 
 void SaveArrElem(const TypeNode& type);

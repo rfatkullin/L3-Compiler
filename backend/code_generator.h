@@ -71,7 +71,7 @@ public :
 	void PrintBool();
 	void PrintString();
 
-	void SetSubCall(const char *subName);
+	void SetSubCall(const char *subName, int paramsCnt);
 	void SetRet();
 
 	void SetLabel(int labelNum);
@@ -110,6 +110,7 @@ private :
 
 	void IncStackSize();
     void DecStackSize();
+	void DecStackSize(int decVal);
 
 	std::string GetNewLabel(int* labelNum);
 	std::string GetLabelNameByNum(int labelNum);
