@@ -38,7 +38,18 @@ class ArrElNode;
 class FuncCallGetArrElNode;
 class LengthNode;
 
-class SubsDefNode
+class Node
+{
+public :
+	std::pair<int, int> pos;
+
+	void SetLines(int startLine, int endLine)
+	{
+		pos = std::make_pair(startLine, endLine);
+	}
+};
+
+class SubsDefNode : public Node
 {
 public :
 	SubsDefNode( SubDefNode* new_def, SubsDefNode* new_tail )
@@ -50,7 +61,7 @@ public :
 	SubsDefNode* tail;
 };
 
-class SubDefNode
+class SubDefNode : public Node
 {
 public :
 
@@ -67,7 +78,7 @@ public :
 	StatementsNode*	statements;
 };
 
-class ParamSeqNode
+class ParamSeqNode : public Node
 {
 public :
 	ParamSeqNode( IdentsNode* new_idents, TypeNode* new_type )
@@ -79,7 +90,7 @@ public :
 	TypeNode* 		type;
 };
 
-class ParamsDefNode
+class ParamsDefNode : public Node
 {
 public :
 	ParamsDefNode( ParamSeqNode* new_params_sec, ParamsDefNode* new_tail )
@@ -91,7 +102,7 @@ public :
 	ParamsDefNode* 	tail;
 };
 
-class IdentsNode
+class IdentsNode : public Node
 {
 public :
 	IdentsNode( char* new_ident, IdentsNode* new_tail )
@@ -103,7 +114,7 @@ public :
 	IdentsNode* tail;
 };
 
-class SigNode
+class SigNode : public Node
 {
 public :
 	typedef std::list<std::pair<const char*,TypeNode*> > SubParams;
@@ -138,7 +149,7 @@ public :
 	SubParams* params;
 };
 
-class StatementsNode
+class StatementsNode : public Node
 {
 public :
 	StatementsNode( StatementNode* new_statement, StatementsNode* new_tail )
@@ -150,7 +161,7 @@ public :
 	StatementsNode* tail;
 };
 
-class StatementNode
+class StatementNode : public Node
 {
 public :
 	StatementNode( int new_tag )
@@ -174,7 +185,7 @@ public :
 	};
 };
 
-class CheckNode
+class CheckNode : public Node
 {
 public :
 	CheckNode( ExprNode* new_expr )
@@ -184,7 +195,7 @@ public :
 	ExprNode* expr;
 };
 
-class PrintNode
+class PrintNode : public Node
 {
 public :
 	PrintNode(ExprNode* toPrintExpr)
@@ -194,7 +205,7 @@ public :
 	ExprNode* expr;
 };
 
-class LengthNode
+class LengthNode : public Node
 {
 public :
 	LengthNode(ExprNode* newExpr)
@@ -204,7 +215,7 @@ public :
 	ExprNode* expr;
 };
 
-class WhileDoNode
+class WhileDoNode : public Node
 {
 public :
 	WhileDoNode( ExprNode* new_expr, StatementsNode* new_statements )
@@ -216,7 +227,7 @@ public :
 	StatementsNode* 	statements;
 };
 
-class IfNode
+class IfNode : public Node
 {
 public :
 	IfNode( ExprNode* new_expr, StatementsNode* new_statements, IfSuffixNode* new_suffix )
@@ -230,7 +241,7 @@ public :
 	IfSuffixNode* 		suffix;
 };
 
-class IfSuffixNode
+class IfSuffixNode : public Node
 {
 public :
 	IfSuffixNode( ElseIfNode* new_else_if, StatementsNode* new_statements )
@@ -242,7 +253,7 @@ public :
 	StatementsNode* statements;
 };
 
-class ElseIfNode
+class ElseIfNode : public Node
 {
 public :
 	ElseIfNode( ExprNode* new_expr, StatementsNode* new_statements, ElseIfNode* new_else_if )
@@ -256,7 +267,7 @@ public :
 	ElseIfNode* 		else_if;
 };
 
-class ForNode
+class ForNode : public Node
 {
 public :
 	ForNode(ForFromParamNode* fromParam, ForToParamNode* toParam, StatementsNode* statements)
@@ -270,7 +281,7 @@ public :
 	StatementsNode*		_statements;
 };
 
-class ForFromParamNode
+class ForFromParamNode : public Node
 {
 public :
 	ForFromParamNode(int type)
@@ -287,7 +298,7 @@ public :
 	};
 };
 
-class ForToParamNode
+class ForToParamNode : public Node
 {
 public :
 	ForToParamNode( ExprNode* new_to, ExprNode* new_step )
@@ -299,7 +310,7 @@ public :
 	ExprNode* step;
 };
 
-class VarsDefNode
+class VarsDefNode : public Node
 {
 public :
 	VarsDefNode( VarsNode* new_vars, TypeNode* new_type )
@@ -311,7 +322,7 @@ public :
 	TypeNode* type;
 };
 
-class VarsNode
+class VarsNode : public Node
 {
 public :
 	VarsNode( VarNode* new_var, VarsNode* new_tail )
@@ -323,7 +334,7 @@ public :
 	VarsNode* 	tail;
 };
 
-class VarNode
+class VarNode : public Node
 {
 public :
 	VarNode( int new_tag, char* new_ident )
@@ -341,7 +352,7 @@ public :
 	};
 };
 
-class NewArrNode
+class NewArrNode : public Node
 {
 public :
 	NewArrNode(TypeNode* newType, ExprNode* newExpr)
@@ -353,7 +364,7 @@ public :
 	ExprNode* expr;
 };
 
-class AssignNode
+class AssignNode : public Node
 {
 public :
 	AssignNode(LeftValueNode* new_left, ExprNode* new_expr)
@@ -365,7 +376,7 @@ public :
 	ExprNode* 		expr;
 };
 
-class LeftValueNode
+class LeftValueNode : public Node
 {
 public :
 	LeftValueNode(int new_tag)
@@ -382,7 +393,7 @@ public :
 	};
 };
 
-class FuncCallGetArrElNode
+class FuncCallGetArrElNode : public Node
 {
 public :
 	FuncCallGetArrElNode(FuncCallNode* newFuncCall, std::list<ExprNode*>* newIndexes)
@@ -394,7 +405,7 @@ public :
 	std::list<ExprNode*>* indexes;
 };
 
-class ArrElNode
+class ArrElNode : public Node
 {
 public :
 	ArrElNode(char* newIdent, std::list<ExprNode*>* newIndexes)
@@ -406,7 +417,7 @@ public :
 	std::list<ExprNode*>*	indexes;
 };
 
-class RepeatNode
+class RepeatNode : public Node
 {
 public :
 	RepeatNode( StatementsNode* new_statements, ExprNode* new_expr )
@@ -418,7 +429,7 @@ public :
 	ExprNode* 		expr;
 };
 
-class TypeNode
+class TypeNode : public Node
 {
 public :
 	TypeNode()
@@ -435,7 +446,7 @@ public :
 	int dimen;
 };
 
-class ExprNode
+class ExprNode : public Node
 {
 public :
 	int op;
@@ -464,7 +475,7 @@ public :
 	};
 };
 
-class FuncCallNode
+class FuncCallNode : public Node
 {
 public :
 	FuncCallNode(char* newIdent, std::list<ExprNode*>* newParams)

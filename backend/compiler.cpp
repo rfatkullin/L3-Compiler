@@ -16,32 +16,11 @@ namespace L3Compiler
     }
 
 	bool Compiler :: Run()
-	{
-		if (!StaticTest())
-		{
-			printf("Static test failed!\n");
-			return false;
-		}		
+	{		
+		ON_TRUE_ERR(!_program || !CheckMainFunc(), Msg::MainFuncIsNotDefined, _program->pos);
 
 		return SubsDefProcess();
-	}	
-
-	bool Compiler :: StaticTest()
-	{
-		if (!_program)
-		{
-			printf("Empty source\n");
-			return false;
-		}
-
-		if (!CheckMainFunc())
-		{
-			printf("Can't find main func\n");
-			return false;
-		}
-
-		return true;
-	}
+	}		
 
 	bool Compiler :: CheckMainFunc()
 	{
@@ -63,18 +42,18 @@ namespace L3Compiler
 			return false;
 
 		//Main must be function -> int main([[char]])
-		ON_FALSE_ERR(mainSubNode->tag == FUNC, Msg::MainFuncMustReturnIntValue);
+		ON_FALSE_ERR(mainSubNode->tag == FUNC, Msg::MainFuncMustReturnIntValue, mainSubNode->pos);
 
 		//return int value
-		ON_FALSE_ERR(IsIntType(*mainSubNode->type), Msg::MainFuncMustReturnIntValue);
+		ON_FALSE_ERR(IsIntType(*mainSubNode->type), Msg::MainFuncMustReturnIntValue, mainSubNode->pos);
 
 		//take only one param
-		ON_FALSE_ERR(mainSubNode->signature->params->size() == 1, Msg::MainFuncTakeOneStringArrParam);
+		ON_FALSE_ERR(mainSubNode->signature->params->size() == 1, Msg::MainFuncTakeOneStringArrParam, mainSubNode->pos);
 
 		TypeNode paramType = *(mainSubNode->signature->params->begin()->second);
 
 		//with type [[char]]
-		ON_FALSE_ERR(paramType.type == CHAR_TYPE && paramType.dimen == 2, Msg::MainFuncTakeOneStringArrParam);
+		ON_FALSE_ERR(paramType.type == CHAR_TYPE && paramType.dimen == 2, Msg::MainFuncTakeOneStringArrParam, mainSubNode->pos);
 
 		return true;
 	}	
@@ -127,10 +106,10 @@ namespace L3Compiler
 		return true;
 	}
 
-	bool Compiler :: AddSubParamsToScope(SigNode::SubParams* params)
+	bool Compiler :: AddSubParamsToScope(SigNode::SubParams* params, const std::pair<int, int>& pos)
 	{
 		for (SigNode::SubParams::iterator it = params->begin(); it != params->end(); ++it)
-			CHECK_TRUE(AddScopeVar(it->first, _blockArgsCount++, it->second, true));
+			CHECK_TRUE(AddScopeVar(it->first, _blockArgsCount++, it->second, true, pos));
 
 		return true;
 	}
@@ -141,14 +120,14 @@ namespace L3Compiler
 
 		_currSubName = node->signature->funcName;
 
-		AddSubParamsToScope(node->signature->params);
+		AddSubParamsToScope(node->signature->params, node->pos);
 
 		_codeGen->BlockStart(_currSubName);
 
 		CHECK_TRUE(StatementsProcess(node->statements));
 
 		if (node->tag == FUNC)
-			ON_FALSE_ERR(_stackValuesTypes.size() > 0 && TypeMatch(_stackValuesTypes.top(), *node->type), Msg::SubSigReturnMismatch);
+			ON_FALSE_ERR(_stackValuesTypes.size() > 0 && TypeMatch(_stackValuesTypes.top(), *node->type), Msg::SubSigReturnMismatch, node->pos);
 
 		_codeGen->BlockEnd(node->signature->funcName, _scopeVars, node->tag == PROC);
 
@@ -228,7 +207,7 @@ namespace L3Compiler
 					break;
 
 				default :
-					printf("Unexpected operator!\n");
+					PRINT_ERR_RETURN(Msg::UnexpectedOperator, node->pos);
 					return false;
 			}
 
@@ -255,7 +234,7 @@ namespace L3Compiler
 	{
 		Variable var(_blockLocalsCount++, type, false);
 
-		CHECK_TRUE(AddScopeVar(node->ident, var));
+		CHECK_TRUE(AddScopeVar(node->ident, var, node->pos));
 
 		switch (node->tag)
 		{
@@ -268,7 +247,7 @@ namespace L3Compiler
 				break;
 
 			default :
-				PRINT_ERR_RETURN(Msg::IdentificatorExpected);
+				PRINT_ERR_RETURN(Msg::IdentificatorExpected, node->pos);
 				break;
 		}
 
@@ -279,7 +258,7 @@ namespace L3Compiler
     {
 		CHECK_TRUE(ExprProcess(exprNode));
 
-		ON_FALSE_ERR(TypeMatch(_stackValuesTypes.top(), *var._type), Msg::TypeMismatch);
+		ON_FALSE_ERR(TypeMatch(_stackValuesTypes.top(), *var._type), Msg::TypeMismatch, exprNode->pos);
 
         _stackValuesTypes.pop();
         _codeGen->SaveFromStack(var);
@@ -327,7 +306,7 @@ namespace L3Compiler
 			break;
 
 		case IDENT :
-			CHECK_TRUE(FindVariable(node->un.ident, tmpVar));
+			CHECK_TRUE(FindVariable(node->un.ident, tmpVar, node->pos));
 			_stackValuesTypes.push(*tmpVar._type);
 			_codeGen->LoadVariable(tmpVar);
 			break;
@@ -387,11 +366,7 @@ namespace L3Compiler
 		case LOG_AND :
 		case LOG_CAP :
 
-			if (!IsBoolType(type1) || !IsBoolType(type2))
-			{
-				printf("[Error]: Operands of boolean operator must be boolean!\n");
-				return false;
-			}
+			ON_FALSE_ERR(IsBoolType(type1) && IsBoolType(type2), Msg::BoolOperatorsBadArgs, node->pos);
 
 			switch (node->op)
 			{
@@ -412,11 +387,7 @@ namespace L3Compiler
 		case EQ		:
 		case NOT_EQ :
 
-			if (!TypeMatch(type1, type2) &&
-				(!IsCharOrIntType(type1) || !IsCharOrIntType(type2)))
-			{
-				PRINT_ERR_RETURN(Msg::TypeMismatch);
-			}
+			CHECK_TRUE(EqOpArgCheck(type1, type2, node->pos));
 
 			if (node->op == EQ)
 				_codeGen->EqOperator();
@@ -430,7 +401,7 @@ namespace L3Compiler
 		case LSS_EQ :
 		case GTR_EQ :
 
-			CHECK_TRUE(CompareOpArgCheck(type1, type2));
+			CHECK_TRUE(CompareOpArgCheck(type1, type2, node->pos));
 
 			switch (node->op)
 			{
@@ -471,7 +442,7 @@ namespace L3Compiler
 			}
 			else
 			{
-				PRINT_ERR_RETURN(Msg::TypeMismatch);
+				PRINT_ERR_RETURN(Msg::AddOperatorBadArgs, node->pos);
 			}
 			break;
 
@@ -491,21 +462,16 @@ namespace L3Compiler
 			}
 			else
 			{
-				printf("[Error]: type mismatch!\n");
-				return false;
+				PRINT_ERR_RETURN(Msg::MinusOperatorBadArgs, node->pos);
 			}
 			break;
 
 		case MULTIPLY :
 		case DIVIDE	  :
 		case MOD	  :
-		case CAP	  :
+		case CAP	  :			
 
-			if (!IsIntType(type1) || !IsIntType(type2))
-			{
-				printf("[Error]: Operands of ^,/,%% operators must be boolean!\n");
-				return false;
-			}
+			ON_FALSE_ERR(IsIntType(type1) && IsIntType(type2), Msg::ArithmeticOperatorsBadArgs, node->pos);
 
 			switch (node->op)
 			{
@@ -531,8 +497,7 @@ namespace L3Compiler
 			break;
 
 		default :
-			printf("[Error]: Unknown expr!\n");
-			return false;
+			PRINT_ERR_RETURN(Msg::UnexpectedOperator, node->pos);
 		}
 
 		return true;
@@ -555,7 +520,7 @@ namespace L3Compiler
 	bool Compiler :: GetArrElProcess(ArrElNode* node)
 	{
 		Variable var;
-		CHECK_TRUE(FindVariable(node->ident, var));
+		CHECK_TRUE(FindVariable(node->ident, var, node->pos));
 
 		_codeGen->LoadVariable(var);
 
@@ -604,20 +569,20 @@ namespace L3Compiler
 				return true;
 			}
 
-			CHECK_TRUE(FindVariable(node->left->ident, var));
-			ON_FALSE_ERR(TypeMatch(*var._type, _stackValuesTypes.top()), Msg::TypeMismatch);
+			CHECK_TRUE(FindVariable(node->left->ident, var, node->pos));
+			ON_FALSE_ERR(TypeMatch(*var._type, _stackValuesTypes.top()), Msg::TypeMismatch, node->pos);
 
 			_codeGen->SaveFromStack(var);
 			break;
 
 		case ARR_EL :
-			CHECK_TRUE(FindVariable(node->left->arr_el->ident, var));
+			CHECK_TRUE(FindVariable(node->left->arr_el->ident, var, node->pos));
 			_codeGen->LoadVariable(var);
 			CHECK_TRUE(ArrElProcess(node->left->arr_el->indexes))
 			CHECK_TRUE(ExprProcess(node->expr));
 			type = *var._type;
 			type.dimen -= node->left->arr_el->indexes->size();
-			ON_FALSE_ERR(TypeMatch(type, _stackValuesTypes.top()), Msg::TypeMismatch);
+			ON_FALSE_ERR(TypeMatch(type, _stackValuesTypes.top()), Msg::TypeMismatch, node->pos);
 
 			_codeGen->SaveArrElem(type);
 			break;
@@ -629,13 +594,13 @@ namespace L3Compiler
 			CHECK_TRUE(ArrElProcess(node->left->funcCallGetArrEl->indexes))\
 			CHECK_TRUE(ExprProcess(node->expr));
 			type.dimen -= node->left->funcCallGetArrEl->indexes->size();
-			ON_FALSE_ERR(TypeMatch(type, _stackValuesTypes.top()), Msg::TypeMismatch);
+			ON_FALSE_ERR(TypeMatch(type, _stackValuesTypes.top()), Msg::TypeMismatch, node->pos);
 
 			_codeGen->SaveArrElem(type);
 			break;
 
 		default :
-			PRINT_ERR_RETURN(Msg::UnexpectedOperator);
+			PRINT_ERR_RETURN(Msg::UnexpectedOperator, node->pos);
 			break;
 		}
 
@@ -649,8 +614,6 @@ namespace L3Compiler
 		CHECK_TRUE(ExprProcess(node->expr));
 
 		TypeNode argType = _stackValuesTypes.top();
-
-		//Пока выводим только int, bool,char
 
 		if (IsIntType(argType))
 		{
@@ -669,7 +632,7 @@ namespace L3Compiler
 			_codeGen->PrintString();
 		}
 		else
-			PRINT_ERR_RETURN(Msg::PrintTypeMismatch);
+			PRINT_ERR_RETURN(Msg::PrintOperatorBadArg, node->pos);
 
 		_stackValuesTypes.pop();
 		return true;
@@ -679,7 +642,7 @@ namespace L3Compiler
 	{
 		CHECK_TRUE(ExprProcess(node->expr));
 
-		ON_FALSE_ERR(_stackValuesTypes.top().dimen > 0, Msg::TypeMismatch);
+		ON_FALSE_ERR(_stackValuesTypes.top().dimen > 0, Msg::LengthOperatorBadArg, node->pos);
 
 		_codeGen->LengthOperator();
 
@@ -693,13 +656,13 @@ namespace L3Compiler
 	{
 		SubsMap::iterator funcRecIt = _subs.find(node->ident);
 
-		ON_FALSE_ERR(funcRecIt != _subs.end(), Msg::UnknownSubCall);
+		ON_FALSE_ERR(funcRecIt != _subs.end(), Msg::UnknownSubCall, node->pos);
 
 		SigNode::SubParams* funcParams = funcRecIt->second.second;
 		std::list<ExprNode*>* factParams = node->params;
 
-		ON_TRUE_ERR(factParams->size() > funcParams->size(), Msg::TooManyArgs);
-		ON_TRUE_ERR(factParams->size() < funcParams->size(), Msg::TooFewArgs);
+		ON_TRUE_ERR(factParams->size() > funcParams->size(), Msg::TooManyArgs, node->pos);
+		ON_TRUE_ERR(factParams->size() < funcParams->size(), Msg::TooFewArgs, node->pos);
 
 		std::list<ExprNode*>::iterator factParamIt = factParams->begin();
 		for (SigNode::SubParams::iterator formParamIt = funcParams->begin(); formParamIt != funcParams->end(); ++formParamIt)
@@ -805,20 +768,20 @@ namespace L3Compiler
 		else
 		{
 			VarsDefNode* varsDef = node->_fromParam->_varsDef;
-			ON_FALSE_ERR(varsDef->vars->tail == NULL, Msg::ForLoopDefOnlyOneVar);
-			ON_FALSE_ERR(IsIntType(*varsDef->type) || IsCharType(*varsDef->type), Msg::ForLoopVariableMustBeIntOrChar);
+			ON_FALSE_ERR(varsDef->vars->tail == NULL, Msg::ForLoopDefOnlyOneVar, node->pos);
+			ON_FALSE_ERR(IsIntType(*varsDef->type) || IsCharType(*varsDef->type), Msg::ForLoopVariableMustBeIntOrChar, node->pos);
 			CHECK_TRUE(VarDefsProcess(varsDef));
 			forLoopVarName = varsDef->vars->var->ident;
 		}
 
 		Variable counterVar;
-		CHECK_TRUE(FindVariable(forLoopVarName, counterVar));
+		CHECK_TRUE(FindVariable(forLoopVarName, counterVar, node->_fromParam->pos));
 
 		Variable toExprVar = GetFreeTmpVar(*counterVar._type);
 		Variable stepExprVar = GetFreeTmpVar(TypeNode(INT_TYPE, 0));
 
-		CHECK_TRUE(CompareOpArgCheck(*counterVar._type, *toExprVar._type));
-		CHECK_TRUE(AddOpArgCheck(*counterVar._type, *stepExprVar._type));
+		CHECK_TRUE(CompareOpArgCheck(*counterVar._type, *toExprVar._type, node->_fromParam->pos));
+		CHECK_TRUE(AddOpArgCheck(*counterVar._type, *stepExprVar._type, node->_fromParam->pos));
 
 		CHECK_TRUE(ExprProcess(node->_toParam->to));
 		_codeGen->SaveFromStack(toExprVar);
@@ -847,16 +810,16 @@ namespace L3Compiler
         return true;
     }
 
-	bool Compiler :: AddScopeVar(const char* ident, int id, TypeNode* type, bool isArg)
+	bool Compiler :: AddScopeVar(const char* ident, int id, TypeNode* type, bool isArg, const std::pair<int, int>& pos)
 	{
-		CHECK_TRUE(AddScopeVar(ident, Variable(id, type, isArg)));
+		CHECK_TRUE(AddScopeVar(ident, Variable(id, type, isArg), pos));
 
 		return true;
 	}
 
-	bool Compiler :: AddScopeVar(const char* ident, const Variable& var)
+	bool Compiler :: AddScopeVar(const char* ident, const Variable& var, const std::pair<int, int>& pos)
 	{
-		ON_TRUE_ERR(_scopeVars.find(ident) != _scopeVars.end(), Msg::DeclarationConflict);
+		ON_TRUE_ERR(_scopeVars.find(ident) != _scopeVars.end(), Msg::DeclarationConflict, pos);
 
 		_scopeVars.insert(std::pair<const char*, Variable>(ident, var));
 
@@ -893,35 +856,38 @@ namespace L3Compiler
 		return IsCharType(typeNode) || IsIntType(typeNode);
 	}
 
-	bool Compiler :: FindVariable(const char* ident, Variable& var)
+	bool Compiler :: FindVariable(const char* ident, Variable& var, const std::pair<int, int>& pos)
     {
 		std::map<const char*, Variable, StrCmp>::iterator locIt = _scopeVars.find(ident);
 
-		if (locIt == _scopeVars.end())
-		{
-			printf("[%s]%s\n", _currSubName, ident);
-
-			PRINT_ERR_RETURN(Msg::VariableNotDiclared);
-		}
+		ON_TRUE_ERR(locIt == _scopeVars.end(), Msg::VariableNotDiclared, pos);
 
 		var = (*locIt).second;
 
         return true;
     }
 
-	bool Compiler :: AddOpArgCheck(const TypeNode& type1, const TypeNode& type2)
+	bool Compiler :: AddOpArgCheck(const TypeNode& type1, const TypeNode& type2, const std::pair<int, int>& pos)
 	{
 		ON_FALSE_ERR(IsIntType(type1) && IsIntType(type2)  ||
 					 IsIntType(type1) && IsCharType(type2) ||
-					 IsCharType(type1) && IsIntType(type2), Msg::TypeMismatch);
+					 IsCharType(type1) && IsIntType(type2), Msg::AddOperatorBadArgs, pos);
 
 		return true;
 	}
 
 
-	bool Compiler :: CompareOpArgCheck(const TypeNode& type1, const TypeNode& type2)
+	bool Compiler :: EqOpArgCheck(const TypeNode& type1, const TypeNode& type2, const std::pair<int, int>& pos)
 	{
-		ON_FALSE_ERR(IsCharOrIntType(type1) && IsCharOrIntType(type2), Msg::TypeMismatch);
+		ON_FALSE_ERR(TypeMatch(type1, type2)  ||
+					 (!IsCharOrIntType(type1) || !IsCharOrIntType(type2)), Msg::EqOperatorBadArgs, pos);
+
+		return true;
+	}
+
+	bool Compiler :: CompareOpArgCheck(const TypeNode& type1, const TypeNode& type2, const std::pair<int, int>& pos)
+	{
+		ON_FALSE_ERR(IsCharOrIntType(type1) && IsCharOrIntType(type2), Msg::CompareOperatorBadArgs, pos);
 
 		return true;
 	}
@@ -965,7 +931,7 @@ namespace L3Compiler
 		Variable var(_blockLocalsCount, new TypeNode(type), false);
 		const char* varName = GetTmpVarName(_blockLocalsCount);
 		_scopeTmpVars.insert(std::pair<int, Variable>(_blockLocalsCount, var));
-		AddScopeVar(varName, var);
+		AddScopeVar(varName, var, std::make_pair(-1, -1));
 		_allScopeTmpVars.insert(_blockLocalsCount++);
 
 		return var;

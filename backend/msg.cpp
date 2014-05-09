@@ -7,7 +7,7 @@ namespace L3Compiler
 		"Variable not declared in this scope!",
 		"Type mismatch!",
 		"Unexpected operator!",
-		"Operator print takes only operands of int, char, bool types!",
+		"Print operator takes only operands of int, char, bool and char[] types!",
 		"Conflicting in declaration function locals!",
 		"Expected identificator!",
 		"For loop do not declare more than one variable!",
@@ -16,15 +16,23 @@ namespace L3Compiler
 		"Main func must take only one param with string array type!",
 		"Function return type doesn't match function signature type!",
 		"Unknown sub call",
-		"[Набор слов:)]Sub params types dismatch!",
+		"Sub params types dismatch!",
 		"Too few arguments to function",
-		"Too many arguments to function"
+		"Too many arguments to function",
+		"Operands of boolean operator must be boolean!\n",
+		"Operands of pow, divide, mod and multiply operators must be boolean!",
+		"Minus operator takes next args - (int, int), (char, char) or (char, int)!",
+		"Add operator takes next args - (int, int), (int, char) or (char, int)!",
+		"Equality operator takes next args -(type, type), (int, char), (char, int)!",
+		"Compare operator takes next args -(int, int), (char, char), (int, char), (char, int)!",
+		"Length operator takes operand of array type!",
+		"Main function is not defined!"
 	};
 
 	const int Msg::VariableNotDiclared				= 0;
 	const int Msg::TypeMismatch						= 1;
 	const int Msg::UnexpectedOperator				= 2;
-	const int Msg::PrintTypeMismatch				= 3;
+	const int Msg::PrintOperatorBadArg				= 3;
 	const int Msg::DeclarationConflict				= 4;
 	const int Msg::IdentificatorExpected			= 5;
 	const int Msg::ForLoopDefOnlyOneVar				= 6;
@@ -36,5 +44,13 @@ namespace L3Compiler
 	const int Msg::SubParamTypeDismatch				= 12;
 	const int Msg::TooFewArgs						= 13;
 	const int Msg::TooManyArgs						= 14;
+	const int Msg::BoolOperatorsBadArgs				= 15;
+	const int Msg::ArithmeticOperatorsBadArgs		= 16;
+	const int Msg::MinusOperatorBadArgs				= 17;
+	const int Msg::AddOperatorBadArgs				= 18;
+	const int Msg::EqOperatorBadArgs				= 19;
+	const int Msg::CompareOperatorBadArgs			= 20;
+	const int Msg::LengthOperatorBadArg				= 21;
+	const int Msg::MainFuncIsNotDefined					= 22;
 
 } // L3Compiler namespace

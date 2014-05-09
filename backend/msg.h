@@ -6,13 +6,13 @@ namespace L3Compiler
 	class Msg
 	{
 	public :
-		static const int   ErrorStrCnt = 15;
+		static const int   ErrorStrCnt = 23;
 		static const char* ErrorsStrList[ErrorStrCnt];
 
 		static const int VariableNotDiclared;
 		static const int TypeMismatch;
 		static const int UnexpectedOperator;
-		static const int PrintTypeMismatch;
+		static const int PrintOperatorBadArg;
 		static const int DeclarationConflict;
 		static const int IdentificatorExpected;
 		static const int ForLoopDefOnlyOneVar;
@@ -24,6 +24,15 @@ namespace L3Compiler
 		static const int SubParamTypeDismatch;
 		static const int TooFewArgs;
 		static const int TooManyArgs;
+		static const int BoolOperatorsBadArgs;
+		static const int ArithmeticOperatorsBadArgs;
+		static const int MinusOperatorBadArgs;
+		static const int AddOperatorBadArgs;
+		static const int EqOperatorBadArgs;
+		static const int CompareOperatorBadArgs;
+		static const int LengthOperatorBadArg;
+		static const int MainFuncIsNotDefined;
+
 	};
 
 } // L3Compiler namespace

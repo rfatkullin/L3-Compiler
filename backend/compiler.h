@@ -16,9 +16,9 @@
 namespace L3Compiler
 {
 	#define CHECK_TRUE(param) if (!(param)) return false;
-	#define ON_FALSE_ERR(param, errId) {if (!(param)) PRINT_ERR_RETURN(errId)}
-	#define ON_TRUE_ERR(param, errId) {if (param) PRINT_ERR_RETURN(errId)}
-	#define PRINT_ERR_RETURN(errId) {printf("[Error]: %s\n", Msg::ErrorsStrList[errId]); return false;}
+	#define ON_FALSE_ERR(param, errId, pos) {if (!(param)) PRINT_ERR_RETURN(errId, pos)}
+	#define ON_TRUE_ERR(param, errId, pos) {if (param) PRINT_ERR_RETURN(errId, pos)}
+	#define PRINT_ERR_RETURN(errId, pos) {printf("[Error on %d-%d lines]: %s\n", pos.first, pos.second, Msg::ErrorsStrList[errId]); return false;}
 
 	class Compiler
 	{
@@ -50,8 +50,8 @@ namespace L3Compiler
 		std::string GetString(TypeNode* type);
         void EnterTheBlock();
 		bool CheckMainFunc();
-		bool StaticTest();
-        bool FindVariable(const char* ident, Variable& var);
+		bool CheckMainFuncExists();
+		bool FindVariable(const char* ident, Variable& var, const std::pair<int, int>& pos);
 
 		bool SubsDefProcess();
 		bool SubDefNodeProcess(SubDefNode* node);
@@ -70,7 +70,7 @@ namespace L3Compiler
 		bool CheckStatementProcess(CheckNode* node);		
 		bool ExprAssignProcess(Variable var, ExprNode* node);
 		bool ExprProcess(ExprNode* node);
-		bool AddSubParamsToScope(SigNode::SubParams* params);
+		bool AddSubParamsToScope(SigNode::SubParams* params, const std::pair<int, int>& pos);
 
 		bool PrintStatementProcess(PrintNode* node);
 		bool LengthStatementProcess(LengthNode* node);
@@ -86,11 +86,12 @@ namespace L3Compiler
 		bool IsBoolType(const TypeNode& type);
 		bool IsCharOrIntType(const TypeNode& type);
 
-		bool CompareOpArgCheck(const TypeNode& type1, const TypeNode& type2);
-		bool AddOpArgCheck(const TypeNode& type1, const TypeNode& type2);
+		bool EqOpArgCheck(const TypeNode& type1, const TypeNode& type2, const std::pair<int, int>& pos);
+		bool CompareOpArgCheck(const TypeNode& type1, const TypeNode& type2, const std::pair<int, int>& pos);
+		bool AddOpArgCheck(const TypeNode& type1, const TypeNode& type2, const std::pair<int, int>& pos);
 
-		bool AddScopeVar(const char* ident, int id, TypeNode* type, bool isArg);
-		bool AddScopeVar(const char* ident, const Variable& var);
+		bool AddScopeVar(const char* ident, int id, TypeNode* type, bool isArg, const std::pair<int, int>& pos);
+		bool AddScopeVar(const char* ident, const Variable& var, const std::pair<int, int>& pos);
 
 		const char* GetTmpVarName(int id) const;
 
