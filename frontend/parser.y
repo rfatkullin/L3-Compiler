@@ -134,16 +134,16 @@ FILE* out = NULL;
 
 start : program
 	    {
-		*main_node = $1;
+			*main_node = $1;
 	    }
 
 program : subprogram_def program
 	    {
-		$$ = new SubsDefNode( $1, $2 );
+			$$ = new SubsDefNode( $1, $2 );
 	    }
 	| subprogram_def
 	    {
-		$$ = new SubsDefNode( $1, NULL );
+			$$ = new SubsDefNode( $1, NULL );
 	    }
 	;
 
@@ -161,693 +161,693 @@ subprogram_def : FUNC signature POINTER_METHOD type statements ENDFUNC
 
 signature : IDENT LPAREN params_def RPAREN
 	    {
-		SigNode* node = new SigNode( $1, $3 );
-		$$ = node;
+			SigNode* node = new SigNode( $1, $3 );
+			$$ = node;
 	    }
 	;
 
 params_def : param_section params_def_rest
 	    {
-		ParamsDefNode* node = new ParamsDefNode($1, $2);
-		$$ = node;
+			ParamsDefNode* node = new ParamsDefNode($1, $2);
+			$$ = node;
 	    }
 	|
 	    {
-		$$ = NULL;
+			$$ = NULL;
 	    }
 	;
 
 params_def_rest : SEMICOLON param_section params_def_rest
 	    {
-		ParamsDefNode* node = new ParamsDefNode($2, $3);
-		$$ = node;
+			ParamsDefNode* node = new ParamsDefNode($2, $3);
+			$$ = node;
 	    }
 	|
 	    {
-		$$ = NULL;
+			$$ = NULL;
 	    }
 	;
 
 param_section : idents POINTER_METHOD type
 	    {
-		ParamSeqNode* node = new ParamSeqNode( $1, $3 );
-		$$ = node;
+			ParamSeqNode* node = new ParamSeqNode( $1, $3 );
+			$$ = node;
 	    }
 	;
 
 idents : IDENT COMMA idents
 	    {
-		IdentsNode* node = new IdentsNode( $1, $3 );
-		$$ = node;
+			IdentsNode* node = new IdentsNode( $1, $3 );
+			$$ = node;
 	    }
 	| IDENT
 	    {
-		IdentsNode* node = new IdentsNode( $1, NULL );
-		$$ = node;
+			IdentsNode* node = new IdentsNode( $1, NULL );
+			$$ = node;
 	    }
 	;
 
 statements : statement SEMICOLON statements
 	    {
-		StatementsNode* node = new StatementsNode( $1, $3 );
-		$$ = node;
+			StatementsNode* node = new StatementsNode( $1, $3 );
+			$$ = node;
 	    }
 	| statement
 	    {
-		StatementsNode* node = new StatementsNode( $1, NULL );
-		$$ = node;
+			StatementsNode* node = new StatementsNode( $1, NULL );
+			$$ = node;
 	    }
 	|
 	    {
-		$$ = NULL;
+			$$ = NULL;
 	    }
 	;
 
 statement : vars_def
 	    {
-		StatementNode* node = new StatementNode( VARS_DEF );
-		node->vars_def = $1;
-		$$ = node;
+			StatementNode* node = new StatementNode( VARS_DEF );
+			node->vars_def = $1;
+			$$ = node;
 	    }
 	| assign
 	    {
-		StatementNode* node = new StatementNode( ASSIGN );
-		node->assign = $1;
-		$$ = node;
+			StatementNode* node = new StatementNode( ASSIGN );
+			node->assign = $1;
+			$$ = node;
 	    }
 	| func_call
 	    {
-		StatementNode* node = new StatementNode( FUNC_CALL );
-		node->func_call = $1;
-		$$ = node;
+			StatementNode* node = new StatementNode( FUNC_CALL );
+			node->func_call = $1;
+			$$ = node;
 	    }
 	| if_statement
 	    {
-		StatementNode* node = new StatementNode( IF );
-		node->if_statement = $1;
-		$$ = node;
+			StatementNode* node = new StatementNode( IF );
+			node->if_statement = $1;
+			$$ = node;
 	    }
 	| while_do
 	    {
-		StatementNode* node = new StatementNode( WHILE );
-		node->while_do = $1;
-		$$ = node;
+			StatementNode* node = new StatementNode( WHILE );
+			node->while_do = $1;
+			$$ = node;
 	    }
 	| for
 	    {
-		StatementNode* node = new StatementNode( FOR );
-		node->for_statement = $1;
-		$$ = node;
+			StatementNode* node = new StatementNode( FOR );
+			node->for_statement = $1;
+			$$ = node;
 	    }
 	| repeat
 	    {
-		StatementNode* node = new StatementNode( REPEAT );
-		node->repeat = $1;
-		$$ = node;
+			StatementNode* node = new StatementNode( REPEAT );
+			node->repeat = $1;
+			$$ = node;
 	    }
 	| check
 	    {
-		StatementNode* node = new StatementNode( CHECK );
-		node->check = $1;
-		$$ = node;
+			StatementNode* node = new StatementNode( CHECK );
+			node->check = $1;
+			$$ = node;
 	    }
 	| print
 	    {
-		StatementNode* node = new StatementNode(PRINT);
-		node->print = $1;
-		$$ = node;
+			StatementNode* node = new StatementNode(PRINT);
+			node->print = $1;
+			$$ = node;
 	    }
 	| length
 	    {
-		StatementNode* node = new StatementNode(LENGTH);
-		node->length = $1;
-		$$ = node;
+			StatementNode* node = new StatementNode(LENGTH);
+			node->length = $1;
+			$$ = node;
 	    }
 	;
 
 check : CHECK expr
 	    {
-		CheckNode* node = new CheckNode( $2 );
-		$$ = node;
+			CheckNode* node = new CheckNode( $2 );
+			$$ = node;
 	    }
 	;
 
 print : PRINT LPAREN expr RPAREN
 	    {
-		PrintNode* node = new PrintNode($3);
-		$$ = node;
+			PrintNode* node = new PrintNode($3);
+			$$ = node;
 	    }
 	;
 
 length : LENGTH LPAREN expr RPAREN
 	    {
-		LengthNode* node = new LengthNode($3);
-		$$ = node;
+			LengthNode* node = new LengthNode($3);
+			$$ = node;
 	    }
 	;
 
 vars_def : vars POINTER_METHOD type
 	    {
-		VarsDefNode* node = new VarsDefNode( $1, $3 );
-		$$ = node;
+			VarsDefNode* node = new VarsDefNode( $1, $3 );
+			$$ = node;
 	    }
 	;
 
 vars : var COMMA vars
 	    {
-		VarsNode* node = new VarsNode( $1, $3 );
-		$$ = node;
+			VarsNode* node = new VarsNode( $1, $3 );
+			$$ = node;
 	    }
 	| var
 	    {
-		VarsNode* node = new VarsNode( $1, NULL );
-		$$ = node;
+			VarsNode* node = new VarsNode( $1, NULL );
+			$$ = node;
 	    }
 	;
 
 var : IDENT
 	    {
-		VarNode* node = new VarNode( IDENT, $1 );
-		$$ = node;
+			VarNode* node = new VarNode( IDENT, $1 );
+			$$ = node;
 	    }
 	| IDENT ASSIGN expr
 	    {
-		VarNode* node = new VarNode( EXPR, $1 );
-		node->expr = $3;
-		$$ = node;
+			VarNode* node = new VarNode( EXPR, $1 );
+			node->expr = $3;
+			$$ = node;
 	    }
 	;
 
 assign : IDENT ASSIGN expr
 	    {
-		LeftValueNode* leftVal = new LeftValueNode(IDENT);
-		leftVal->ident = $1;
-		AssignNode* node = new AssignNode(leftVal, $3);
-		$$ = node;
+			LeftValueNode* leftVal = new LeftValueNode(IDENT);
+			leftVal->ident = $1;
+			AssignNode* node = new AssignNode(leftVal, $3);
+			$$ = node;
 	    }
 	| get_arr_element ASSIGN expr
 	    {
-		LeftValueNode* leftVal = new LeftValueNode(ARR_EL);
-		leftVal->arr_el = $1;
-		AssignNode* node = new AssignNode(leftVal, $3);
-		$$ = node;
+			LeftValueNode* leftVal = new LeftValueNode(ARR_EL);
+			leftVal->arr_el = $1;
+			AssignNode* node = new AssignNode(leftVal, $3);
+			$$ = node;
 	    }
 	| func_call get_arr_indexes ASSIGN expr
 	    {
-		LeftValueNode* leftVal = new LeftValueNode(FUNC_CALL_ARR_EL);
-		FuncCallGetArrElNode* funcCallGetArrEl = new FuncCallGetArrElNode($1, $2);
-		leftVal->funcCallGetArrEl = funcCallGetArrEl;
-		AssignNode* node = new AssignNode(leftVal, $4);
-		$$ = node;
+			LeftValueNode* leftVal = new LeftValueNode(FUNC_CALL_ARR_EL);
+			FuncCallGetArrElNode* funcCallGetArrEl = new FuncCallGetArrElNode($1, $2);
+			leftVal->funcCallGetArrEl = funcCallGetArrEl;
+			AssignNode* node = new AssignNode(leftVal, $4);
+			$$ = node;
 	    }
 	;
 
 if_statement : IF expr THEN statements if_suffix ENDIF
 	    {
-		IfNode* node = new IfNode( $2, $4, $5 );
-		$$ = node;
+			IfNode* node = new IfNode( $2, $4, $5 );
+			$$ = node;
 	    }
 	;
 
 if_suffix : else_if ELSE statements
 	    {
-		IfSuffixNode* node = new IfSuffixNode( $1, $3 );
-		$$ = node;
+			IfSuffixNode* node = new IfSuffixNode( $1, $3 );
+			$$ = node;
 	    }
 	| else_if
 	    {
-		IfSuffixNode* node = new IfSuffixNode($1, NULL);
-		$$ = node;
+			IfSuffixNode* node = new IfSuffixNode($1, NULL);
+			$$ = node;
 	    }
 	| ELSE statements
 	    {
-		IfSuffixNode* node = new IfSuffixNode( NULL, $2 );
-		$$ = node;
+			IfSuffixNode* node = new IfSuffixNode( NULL, $2 );
+			$$ = node;
 	    }
 	|   {
-		$$ = NULL;
+			$$ = NULL;
 	    }
 	;
 
 else_if : ELSEIF expr THEN statements else_if
 	    {
-		ElseIfNode* node = new ElseIfNode( $2, $4, $5 );
-		$$ = node;
+			ElseIfNode* node = new ElseIfNode( $2, $4, $5 );
+			$$ = node;
 	    }
 	| ELSEIF expr THEN statements
 	    {
-		ElseIfNode* node = new ElseIfNode( $2, $4, NULL );
-		$$ = node;
+			ElseIfNode* node = new ElseIfNode( $2, $4, NULL );
+			$$ = node;
 	    }
 	;
 
 while_do : WHILE expr DO statements ENDWHILE
 	    {
-		WhileDoNode* node = new WhileDoNode( $2, $4 );
-		$$ = node;
+			WhileDoNode* node = new WhileDoNode( $2, $4 );
+			$$ = node;
 	    }
 	;
 
 for : FOR for_from_param TO for_to_param DO statements ENDFOR
 	    {
-		ForNode* node = new ForNode( $2, $4, $6 );
-		$$ = node;
+			ForNode* node = new ForNode( $2, $4, $6 );
+			$$ = node;
 	    }
 	;
 
 for_from_param : vars_def
 	    {
-		ForFromParamNode* node = new ForFromParamNode(VARS_DEF);
-		node->_varsDef = $1;
-		$$ = node;
+			ForFromParamNode* node = new ForFromParamNode(VARS_DEF);
+			node->_varsDef = $1;
+			$$ = node;
 	    }
 	| assign
 	    {
-		ForFromParamNode* node = new ForFromParamNode(ASSIGN);
-		node->_assign = $1;
-		$$ = node;
+			ForFromParamNode* node = new ForFromParamNode(ASSIGN);
+			node->_assign = $1;
+			$$ = node;
 	    }
 	;
 
 for_to_param : expr
 	    {
-		ExprNode* expr = new ExprNode();
-		expr->op = NUMBER;
-		expr->un.num = 1;
-		ForToParamNode* node = new ForToParamNode( $1, expr );
-		$$ = node;
+			ExprNode* expr = new ExprNode();
+			expr->op = NUMBER;
+			expr->un.num = 1;
+			ForToParamNode* node = new ForToParamNode( $1, expr );
+			$$ = node;
 	    }
 	| expr STEP expr
 	    {
-		ForToParamNode* node = new ForToParamNode( $1, $3 );
-		$$ = node;
+			ForToParamNode* node = new ForToParamNode( $1, $3 );
+			$$ = node;
 	    }
 	;
 
 repeat : REPEAT statements UNTIL expr
 	    {
-		RepeatNode* node = new RepeatNode( $2, $4 );
-		$$ = node;
+			RepeatNode* node = new RepeatNode( $2, $4 );
+			$$ = node;
 	    }
 	;
 
 type : basic_type
 	    {
-		TypeNode* node = new TypeNode( $1, 0 );
-		$$ = node;
+			TypeNode* node = new TypeNode( $1, 0 );
+			$$ = node;
 	    }
 	| RLPAREN type RRPAREN
 	    {
-		$2->dimen++;
-		$$ = $2;
+			$2->dimen++;
+			$$ = $2;
 	    }
 	;
 
 basic_type : INT_TYPE
 	    {
-		$$  = INT_TYPE;
+			$$  = INT_TYPE;
 	    }
 	| CHAR_TYPE
 	    {
-		$$ = CHAR_TYPE;
+			$$ = CHAR_TYPE;
 	    }
 	| BOOL_TYPE
 	    {
-		$$  = BOOL_TYPE;
+			$$  = BOOL_TYPE;
 	    }
 	;
 
 expr : term_4 LOG_OR term_4
 	    {
-		ExprNode* node = new ExprNode();
-		node->op = LOG_OR;
-		node->bin.left_expr = $1;
-		node->bin.right_expr = $3;
-		$$ = node;
+			ExprNode* node = new ExprNode();
+			node->op = LOG_OR;
+			node->bin.left_expr = $1;
+			node->bin.right_expr = $3;
+			$$ = node;
 	    }
 	| term_4 LOG_CAP term_4
 	    {
-		ExprNode* node = new ExprNode();
-		node->op = LOG_CAP;
-		node->bin.left_expr = $1;
-		node->bin.right_expr = $3;
-		$$ = node;
+			ExprNode* node = new ExprNode();
+			node->op = LOG_CAP;
+			node->bin.left_expr = $1;
+			node->bin.right_expr = $3;
+			$$ = node;
 	    }
 	| term_4
 	    {
-		ExprNode* node = new ExprNode();
-		node->op = UNARY;
-		node->un.expr = $1;
-		$$ = node;
+			ExprNode* node = new ExprNode();
+			node->op = UNARY;
+			node->un.expr = $1;
+			$$ = node;
 	    }
 	;
 
 term_4 : term_3 LOG_AND term_3
 	    {
-		ExprNode* node = new ExprNode();
-		node->op = LOG_AND;
-		node->bin.left_expr = $1;
-		node->bin.right_expr = $3;
-		$$ = node;
+			ExprNode* node = new ExprNode();
+			node->op = LOG_AND;
+			node->bin.left_expr = $1;
+			node->bin.right_expr = $3;
+			$$ = node;
 	    }
 	| term_3
 	    {
-		ExprNode* node = new ExprNode();
-		node->op = UNARY;
-		node->un.expr = $1;
-		$$ = node;
+			ExprNode* node = new ExprNode();
+			node->op = UNARY;
+			node->un.expr = $1;
+			$$ = node;
 	    }
 	;
 
 term_3 : term_2 EQ term_2
 	    {
-		ExprNode* node = new ExprNode();
-		node->op = EQ;
-		node->bin.left_expr = $1;
-		node->bin.right_expr = $3;
-		$$ = node;
+			ExprNode* node = new ExprNode();
+			node->op = EQ;
+			node->bin.left_expr = $1;
+			node->bin.right_expr = $3;
+			$$ = node;
 	    }
 	| term_2 NOT_EQ term_2
 	    {
-		ExprNode* node = new ExprNode();
-		node->op = NOT_EQ;
-		node->bin.left_expr = $1;
-		node->bin.right_expr = $3;
-		$$ = node;
+			ExprNode* node = new ExprNode();
+			node->op = NOT_EQ;
+			node->bin.left_expr = $1;
+			node->bin.right_expr = $3;
+			$$ = node;
 	    }
 	| term_2 LSS term_2
 	    {
-		ExprNode* node = new ExprNode();
-		node->op = LSS;
-		node->bin.left_expr = $1;
-		node->bin.right_expr = $3;
-		$$ = node;
+			ExprNode* node = new ExprNode();
+			node->op = LSS;
+			node->bin.left_expr = $1;
+			node->bin.right_expr = $3;
+			$$ = node;
 	    }
 	| term_2 GTR term_2
 	    {
-		ExprNode* node = new ExprNode();
-		node->op = GTR;
-		node->bin.left_expr = $1;
-		node->bin.right_expr = $3;
-		$$ = node;
+			ExprNode* node = new ExprNode();
+			node->op = GTR;
+			node->bin.left_expr = $1;
+			node->bin.right_expr = $3;
+			$$ = node;
 	    }
 	| term_2 LSS_EQ term_2
 	    {
-		ExprNode* node = new ExprNode();
-		node->op = LSS_EQ;
-		node->bin.left_expr = $1;
-		node->bin.right_expr = $3;
-		$$ = node;
+			ExprNode* node = new ExprNode();
+			node->op = LSS_EQ;
+			node->bin.left_expr = $1;
+			node->bin.right_expr = $3;
+			$$ = node;
 	    }
 	| term_2 GTR_EQ term_2
 	    {
-		ExprNode* node = new ExprNode();
-		node->op = GTR_EQ;
-		node->bin.left_expr = $1;
-		node->bin.right_expr = $3;
-		$$ = node;
+			ExprNode* node = new ExprNode();
+			node->op = GTR_EQ;
+			node->bin.left_expr = $1;
+			node->bin.right_expr = $3;
+			$$ = node;
 	    }
 	| term_2
 	    {
-		ExprNode* node = new ExprNode();
-		node->op = UNARY;
-		node->un.expr = $1;
-		$$ = node;
+			ExprNode* node = new ExprNode();
+			node->op = UNARY;
+			node->un.expr = $1;
+			$$ = node;
 	    }
 	;
 
 term_2 : term_1 PLUS term_1
 	    {
-		ExprNode* node = new ExprNode();
-		node->op = PLUS;
-		node->bin.left_expr = $1;
-		node->bin.right_expr = $3;
-		$$ = node;
+			ExprNode* node = new ExprNode();
+			node->op = PLUS;
+			node->bin.left_expr = $1;
+			node->bin.right_expr = $3;
+			$$ = node;
 	    }
 	| term_1 MINUS term_1
 	    {
-		ExprNode* node = new ExprNode();
-		node->op = MINUS;
-		node->bin.left_expr = $1;
-		node->bin.right_expr = $3;
-		$$ = node;
+			ExprNode* node = new ExprNode();
+			node->op = MINUS;
+			node->bin.left_expr = $1;
+			node->bin.right_expr = $3;
+			$$ = node;
 	    }
 	| term_1
 	    {
-		ExprNode* node = new ExprNode();
-		node->op = UNARY;
-		node->un.expr = $1;
-		$$ = node;
+			ExprNode* node = new ExprNode();
+			node->op = UNARY;
+			node->un.expr = $1;
+			$$ = node;
 	    }
 	;
 
 
 term_1 : pow_factor
 	    {
-		ExprNode* node = new ExprNode();
-		node->op = UNARY;
-		node->un.expr = $1;
-		$$ = node;
+			ExprNode* node = new ExprNode();
+			node->op = UNARY;
+			node->un.expr = $1;
+			$$ = node;
 	    }
 	| pow_factor DIVIDE pow_factor
 	    {
-		ExprNode* node = new ExprNode();
-		node->op = DIVIDE;
-		node->bin.left_expr = $1;
-		node->bin.right_expr = $3;
-		$$ = node;
+			ExprNode* node = new ExprNode();
+			node->op = DIVIDE;
+			node->bin.left_expr = $1;
+			node->bin.right_expr = $3;
+			$$ = node;
 	    }
 	| pow_factor MOD pow_factor
 	    {
-		ExprNode* node = new ExprNode();
-		node->op = MOD;
-		node->bin.left_expr = $1;
-		node->bin.right_expr = $3;
-		$$ = node;
+			ExprNode* node = new ExprNode();
+			node->op = MOD;
+			node->bin.left_expr = $1;
+			node->bin.right_expr = $3;
+			$$ = node;
 	    }
-	|multiply
+	| multiply
 	    {
-		ExprNode* node = new ExprNode();
-		node->op = UNARY;
-		node->un.expr = $1;
-		$$ = node;
+			ExprNode* node = new ExprNode();
+			node->op = UNARY;
+			node->un.expr = $1;
+			$$ = node;
 	    }
 	;
 
 multiply : pow_factor pow_factor %prec MULTIPLY
 	    {
-		ExprNode* node = new ExprNode();
-		node->op = MULTIPLY;
-		node->bin.left_expr = $1;
-		node->bin.right_expr = $2;
-		$$ = node;
+			ExprNode* node = new ExprNode();
+			node->op = MULTIPLY;
+			node->bin.left_expr = $1;
+			node->bin.right_expr = $2;
+			$$ = node;
 	    }
 	;
 
 pow_factor : ufactor CAP ufactor
 	    {
-		ExprNode* node = new ExprNode();
-		node->op = CAP;
-		node->bin.left_expr = $1;
-		node->bin.right_expr = $3;
-		$$ = node;
+			ExprNode* node = new ExprNode();
+			node->op = CAP;
+			node->bin.left_expr = $1;
+			node->bin.right_expr = $3;
+			$$ = node;
 	    }
 	| ufactor
 	    {
-		ExprNode* node = new ExprNode();
-		node->op = UNARY;
-		node->un.expr = $1;
-		$$ = node;
+			ExprNode* node = new ExprNode();
+			node->op = UNARY;
+			node->un.expr = $1;
+			$$ = node;
 	    }
 	;
 
 ufactor : LPAREN MINUS factor RPAREN
 	    {
-		ExprNode* node = new ExprNode();
-		node->op = UMINUS;
-		node->un.expr = $3;
-		$$ = node;
+			ExprNode* node = new ExprNode();
+			node->op = UMINUS;
+			node->un.expr = $3;
+			$$ = node;
 	    }
 	| LPAREN EXCL factor RPAREN
 	    {
-		ExprNode* node = new ExprNode();
-		node->op = EXCL;
-		node->un.expr = $3;
-		$$ = node;
+			ExprNode* node = new ExprNode();
+			node->op = EXCL;
+			node->un.expr = $3;
+			$$ = node;
 	    }
 	| factor
 	    {
-		ExprNode* node = new ExprNode();
-		node->op = UNARY;
-		node->un.expr = $1;
-		$$ = node;
+			ExprNode* node = new ExprNode();
+			node->op = UNARY;
+			node->un.expr = $1;
+			$$ = node;
 	    }
 	;
 
 factor : factor_number
 	    {
-		$$ = $1;
+			$$ = $1;
 	    }
 	| factor_ch
 	    {
-		$$ = $1;
+			$$ = $1;
 	    }
 	| factor_str
 	    {
-		$$ = $1;
+			$$ = $1;
 	    }
 	| factor_ident
 	    {
-		$$ = $1;
+			$$ = $1;
 	    }
 	| factor_bool
 	    {
-		$$ = $1;
+			$$ = $1;
 	    }
 	| get_arr_element
 	    {
-		ExprNode* node = new ExprNode();
-		node->op = ARR_EL;
-		node->un.arr_el = $1;
-		$$ = node;
+			ExprNode* node = new ExprNode();
+			node->op = ARR_EL;
+			node->un.arr_el = $1;
+			$$ = node;
 	    }
 	| func_call
 	    {
-		ExprNode* node = new ExprNode();
-		node->op = FUNC_CALL;
-		node->un.func_call = $1;
-		$$ = node;
+			ExprNode* node = new ExprNode();
+			node->op = FUNC_CALL;
+			node->un.func_call = $1;
+			$$ = node;
 	    }
 	| new_arr
 	    {
-		ExprNode* node = new ExprNode();
-		node->op = NEW_ARR;
-		node->un.new_arr = $1;
-		$$ = node;
+			ExprNode* node = new ExprNode();
+			node->op = NEW_ARR;
+			node->un.new_arr = $1;
+			$$ = node;
 	    }
 	| length
 	    {
-		ExprNode* node = new ExprNode();
-		node->op = LENGTH;
-		node->un.length = $1;
-		$$ = node;
+			ExprNode* node = new ExprNode();
+			node->op = LENGTH;
+			node->un.length = $1;
+			$$ = node;
 	    }
 	| LPAREN expr RPAREN
 	    {
-		ExprNode* node = new ExprNode();
-		node->op = EXPR;
-		node->un.expr = $2;
-		$$ = node;
+			ExprNode* node = new ExprNode();
+			node->op = EXPR;
+			node->un.expr = $2;
+			$$ = node;
 	    }
 	;
 
 new_arr : RLPAREN type expr RRPAREN
 	    {
-		NewArrNode* node = new NewArrNode($2, $3);
-		$$ = node;
+			NewArrNode* node = new NewArrNode($2, $3);
+			$$ = node;
 	    }
 	;
 
 factor_number : NUMBER
 	    {
-		ExprNode* node = new ExprNode();
-		node->op = NUMBER;
-		node->un.num = $1;
-		$$ = node;
+			ExprNode* node = new ExprNode();
+			node->op = NUMBER;
+			node->un.num = $1;
+			$$ = node;
 	    }
 	;
 
 factor_ch : CHAR
 	    {
-		ExprNode* node = new ExprNode();
-		node->op = CHAR;
-		node->un.ch = $1;
-		$$ = node;
+			ExprNode* node = new ExprNode();
+			node->op = CHAR;
+			node->un.ch = $1;
+			$$ = node;
 	    }
 	;
 
 factor_str : STR
 	    {
-		ExprNode* node = new ExprNode();
-		node->op = STR;
-		node->un.str = $1;
-		$$ = node;
+			ExprNode* node = new ExprNode();
+			node->op = STR;
+			node->un.str = $1;
+			$$ = node;
 	    }
 	;
 
 factor_ident : IDENT
 	    {
-		ExprNode* node = new ExprNode();
-		node->op = IDENT;
-		node->un.ident = $1;
-		$$ = node;
+			ExprNode* node = new ExprNode();
+			node->op = IDENT;
+			node->un.ident = $1;
+			$$ = node;
 	    }
 	;
 
 factor_bool : TT
 	    {
-		ExprNode* node = new ExprNode();
-		node->op = TT;
-		node->un.log = true;
-		$$ = node;
+			ExprNode* node = new ExprNode();
+			node->op = TT;
+			node->un.log = true;
+			$$ = node;
 	    }
 	| FF
 	    {
-		ExprNode* node = new ExprNode();
-		node->op = FF;
-		node->un.log = false;
-		$$ = node;
+			ExprNode* node = new ExprNode();
+			node->op = FF;
+			node->un.log = false;
+			$$ = node;
 	    }
 	;
 
 
 get_arr_element : IDENT get_arr_indexes
 	    {
-		ArrElNode* node = new ArrElNode($1, $2);
-		$$ = node;
+			ArrElNode* node = new ArrElNode($1, $2);
+			$$ = node;
 	    }
 	;
 
 get_arr_indexes : RLPAREN expr RRPAREN get_arr_indexes
 	    {
-		$4->push_back($2);
-		$$ = $4;
+			$4->push_back($2);
+			$$ = $4;
 	    }
 	| RLPAREN expr RRPAREN
 	    {
-		std::list<ExprNode*>* lst = new std::list<ExprNode*>();
-		lst->push_back($2);
-		$$ = lst;
+			std::list<ExprNode*>* lst = new std::list<ExprNode*>();
+			lst->push_back($2);
+			$$ = lst;
 	    }
 	;
 
 
 func_call : IDENT LPAREN func_params RPAREN
 	    {
-		FuncCallNode* node = new FuncCallNode($1, $3 );
-		$$ = node;
+			FuncCallNode* node = new FuncCallNode($1, $3 );
+			$$ = node;
 	    }
 	;
 
 func_params : expr func_params_rest
 	    {
-		std::list<ExprNode*>* tmpList = $2;
-		tmpList->push_front($1);
-		$$ = tmpList;
+			std::list<ExprNode*>* tmpList = $2;
+			tmpList->push_front($1);
+			$$ = tmpList;
 	    }
 	|   {
-		$$ = new std::list<ExprNode*>();
+			$$ = new std::list<ExprNode*>();
 	    }
 
 func_params_rest : COMMA expr func_params_rest
 	    {
-		std::list<ExprNode*>* tmpList = $3;
-		tmpList->push_front($2);
-		$$ = tmpList;
+			std::list<ExprNode*>* tmpList = $3;
+			tmpList->push_front($2);
+			$$ = tmpList;
 	    }
 	|
 	    {
-		$$ = new std::list<ExprNode*>();
+			$$ = new std::list<ExprNode*>();
 	    }
 %%
 
