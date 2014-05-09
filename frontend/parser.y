@@ -769,7 +769,7 @@ factor_ch : CHAR
 factor_str : STR
 	    {
 		ExprNode* node = new ExprNode();
-		node->op = STR;		
+		node->op = STR;
 		node->un.str = $1;
 		$$ = node;
 	    }
@@ -802,7 +802,7 @@ factor_bool : TT
 
 
 get_arr_element : IDENT get_arr_indexes
-	    {		
+	    {
 		ArrElNode* node = new ArrElNode($1, $2);
 		$$ = node;
 	    }
@@ -834,7 +834,7 @@ func_params : expr func_params_rest
 		std::list<ExprNode*>* tmpList = $2;
 		tmpList->push_front($1);
 		$$ = tmpList;
-	    }	
+	    }
 	|   {
 		$$ = new std::list<ExprNode*>();
 	    }
@@ -917,7 +917,7 @@ bool Compile(SubsDefNode* mainNode, const char* outputFilePath)
 
 int main(int argc, char* argv[])
 {
-    bool compileRes = false;
+	bool compileRes = false;
 
     std::string source = "";
 
