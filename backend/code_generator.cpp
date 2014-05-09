@@ -325,9 +325,7 @@ void CodeGenerator :: SubOperator()
 
 void CodeGenerator :: LengthOperator()
 {
-	_ilCode += TwoTab + "ldlen\n";
-
-	DecStackSize();
+	_ilCode += TwoTab + "ldlen\n";	
 }
 
 void CodeGenerator :: EqOperator()
@@ -464,6 +462,7 @@ void CodeGenerator :: SetCondJumpToLabel(std::string label, bool onTrue)
 
 void CodeGenerator :: NewArr(TypeNode* type)
 {
+	//Глубина стека остается прежней, так как "... , num -> ... , array"
 	_ilCode += TwoTab + "newarr " + TypeToString(type) + "\n";
 }
 
