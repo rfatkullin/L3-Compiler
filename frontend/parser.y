@@ -739,13 +739,13 @@ ufactor : LPAREN MINUS factor RPAREN
 			$$ = node;
 			$$->SetLines(@1.first_line, @4.last_line);
 	    }
-	| LPAREN EXCL factor RPAREN
+	| EXCL factor
 	    {
 			ExprNode* node = new ExprNode();
 			node->op = EXCL;
-			node->un.expr = $3;
+			node->un.expr = $2;
 			$$ = node;
-			$$->SetLines(@1.first_line, @4.last_line);
+			$$->SetLines(@1.first_line, @2.last_line);
 	    }
 	| factor
 	    {

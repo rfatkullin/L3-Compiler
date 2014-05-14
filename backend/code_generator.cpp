@@ -298,7 +298,8 @@ void CodeGenerator :: PowOperator(int tmpLocVarInd)
 	_ilCode += TwoTab + "conv.r4\n";
 	_ilCode += TwoTab + "ldloc.s " + varNum + "\n";
 	_ilCode += TwoTab + "conv.r4\n";
-	_ilCode += TwoTab + "call System.Math.Pow\n";
+	_ilCode += TwoTab + "call float64 [mscorlib]System.Math::Pow(float64, float64)\n";
+	_ilCode += TwoTab + "conv.i4\n";
 
 	DecStackSize();
 }
@@ -311,7 +312,8 @@ void CodeGenerator :: NegOperator()
 
 void CodeGenerator :: NotOperator()
 {
-	_ilCode += TwoTab + "not\n";
+	_ilCode += TwoTab + "ldc.i4.0\n";
+	_ilCode += TwoTab + "ceq\n";
 }
 
 void CodeGenerator :: AddOperator()

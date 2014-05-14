@@ -6,7 +6,7 @@ namespace L3Compiler
 	class Msg
 	{
 	public :
-		static const int   ErrorStrCnt = 23;
+		static const int   ErrorStrCnt = 24;
 		static const char* ErrorsStrList[ErrorStrCnt];
 
 		static const int VariableNotDiclared;
@@ -26,12 +26,13 @@ namespace L3Compiler
 		static const int TooManyArgs;
 		static const int BoolOperatorsBadArgs;
 		static const int ArithmeticOperatorsBadArgs;
-		static const int MinusOperatorBadArgs;
+		static const int SubOperatorBadArgs;
 		static const int AddOperatorBadArgs;
 		static const int EqOperatorBadArgs;
 		static const int CompareOperatorBadArgs;
 		static const int LengthOperatorBadArg;
 		static const int MainFuncIsNotDefined;
+		static const int UnaryMinusBadArgs;
 
 	};
 

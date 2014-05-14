@@ -323,7 +323,7 @@ namespace L3Compiler
 			type1 = _stackValuesTypes.top();
 			_stackValuesTypes.pop();
 
-			CHECK_TRUE(IsBoolType(type1) || IsIntType(type1));
+			ON_FALSE_ERR(IsCharType(type1) || IsIntType(type1), Msg::UnaryMinusBadArgs, node->pos);
 
 			_codeGen->NegOperator();
 			_stackValuesTypes.push(TypeNode(INT_TYPE, 0));
@@ -358,7 +358,8 @@ namespace L3Compiler
 
 		TypeNode type2 = _stackValuesTypes.top();
 		_stackValuesTypes.pop();
-		type1 = _stackValuesTypes.top();		
+		type1 = _stackValuesTypes.top();
+		_stackValuesTypes.pop();
 
 		switch (node->op)
 		{
@@ -382,6 +383,8 @@ namespace L3Compiler
 					_codeGen->LogXorOperator();
 					break;
 			}
+
+			_stackValuesTypes.push(TypeNode(BOOL_TYPE, 0));
 			break;
 
 		case EQ		:
@@ -394,6 +397,7 @@ namespace L3Compiler
 			else
 				_codeGen->NotEqOperator();
 
+			_stackValuesTypes.push(TypeNode(BOOL_TYPE, 0));
 			break;
 
 		case LSS	:
@@ -425,10 +429,10 @@ namespace L3Compiler
 					break;
 			}
 
+			_stackValuesTypes.push(TypeNode(BOOL_TYPE, 0));
 			break;
 
 		case PLUS	:
-			_stackValuesTypes.pop();
 			if (IsIntType(type1) && IsIntType(type2))
 			{
 				_codeGen->AddOperator();
@@ -447,9 +451,7 @@ namespace L3Compiler
 			break;
 
 		case MINUS	:
-			_stackValuesTypes.pop();
-
-			if (IsIntType(type1)  && IsIntType(type2) ||
+			if (IsIntType(type1)  && IsIntType(type2)  ||
 				IsCharType(type1) && IsCharType(type2))
 			{
 				_codeGen->SubOperator();
@@ -462,7 +464,7 @@ namespace L3Compiler
 			}
 			else
 			{
-				PRINT_ERR_RETURN(Msg::MinusOperatorBadArgs, node->pos);
+				PRINT_ERR_RETURN(Msg::SubOperatorBadArgs, node->pos);
 			}
 			break;
 
@@ -494,6 +496,7 @@ namespace L3Compiler
 					break;
 			}
 
+			_stackValuesTypes.push(TypeNode(INT_TYPE, 0));
 			break;
 
 		default :
@@ -880,7 +883,7 @@ namespace L3Compiler
 	bool Compiler :: EqOpArgCheck(const TypeNode& type1, const TypeNode& type2, const std::pair<int, int>& pos)
 	{
 		ON_FALSE_ERR(TypeMatch(type1, type2)  ||
-					 (!IsCharOrIntType(type1) || !IsCharOrIntType(type2)), Msg::EqOperatorBadArgs, pos);
+					 (IsCharOrIntType(type1) && IsCharOrIntType(type2)), Msg::EqOperatorBadArgs, pos);
 
 		return true;
 	}

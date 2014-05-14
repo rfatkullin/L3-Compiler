@@ -23,10 +23,11 @@ namespace L3Compiler
 		"Operands of pow, divide, mod and multiply operators must be boolean!",
 		"Minus operator takes next args - (int, int), (char, char) or (char, int)!",
 		"Add operator takes next args - (int, int), (int, char) or (char, int)!",
-		"Equality operator takes next args -(type, type), (int, char), (char, int)!",
-		"Compare operator takes next args -(int, int), (char, char), (int, char), (char, int)!",
+		"Equality operator takes next args - (type, type), (int, char), (char, int)!",
+		"Compare operator takes next args - (int, int), (char, char), (int, char), (char, int)!",
 		"Length operator takes operand of array type!",
-		"Main function is not defined!"
+		"Main function is not defined!",
+		"Unary operator takes next args - int, char!"
 	};
 
 	const int Msg::VariableNotDiclared				= 0;
@@ -46,11 +47,12 @@ namespace L3Compiler
 	const int Msg::TooManyArgs						= 14;
 	const int Msg::BoolOperatorsBadArgs				= 15;
 	const int Msg::ArithmeticOperatorsBadArgs		= 16;
-	const int Msg::MinusOperatorBadArgs				= 17;
+	const int Msg::SubOperatorBadArgs				= 17;
 	const int Msg::AddOperatorBadArgs				= 18;
 	const int Msg::EqOperatorBadArgs				= 19;
 	const int Msg::CompareOperatorBadArgs			= 20;
 	const int Msg::LengthOperatorBadArg				= 21;
-	const int Msg::MainFuncIsNotDefined					= 22;
+	const int Msg::MainFuncIsNotDefined				= 22;
+	const int Msg::UnaryMinusBadArgs				= 23;
 
 } // L3Compiler namespace
