@@ -120,7 +120,6 @@ FILE* out = NULL;
 %type <m_expr_node>			factor_ch
 %type <m_expr_node>			factor_str
 %type <m_expr_node>			factor_bool
-%type <m_expr_node>			multiply
 %type <m_expr_list>			func_params
 %type <m_expr_list>			get_arr_indexes
 %type <m_expr_list>			func_params_rest
@@ -636,7 +635,7 @@ term_3 : term_2 EQ term_2
 	    }
 	;
 
-term_2 : term_1 PLUS term_1
+term_2 : term_2 PLUS term_2
 	    {
 			ExprNode* node = new ExprNode();
 			node->op = PLUS;
@@ -645,7 +644,7 @@ term_2 : term_1 PLUS term_1
 			$$ = node;
 			$$->SetLines(@1.first_line, @3.last_line);
 	    }
-	| term_1 MINUS term_1
+	| term_2 MINUS term_2
 	    {
 			ExprNode* node = new ExprNode();
 			node->op = MINUS;
@@ -665,15 +664,7 @@ term_2 : term_1 PLUS term_1
 	;
 
 
-term_1 : pow_factor
-	    {
-			ExprNode* node = new ExprNode();
-			node->op = UNARY;
-			node->un.expr = $1;
-			$$ = node;
-			$$->SetLines(@1.first_line, @1.last_line);
-	    }
-	| pow_factor DIVIDE pow_factor
+term_1 : term_1 DIVIDE term_1
 	    {
 			ExprNode* node = new ExprNode();
 			node->op = DIVIDE;
@@ -682,7 +673,7 @@ term_1 : pow_factor
 			$$ = node;
 			$$->SetLines(@1.first_line, @3.last_line);
 	    }
-	| pow_factor MOD pow_factor
+	| term_1 MOD term_1
 	    {
 			ExprNode* node = new ExprNode();
 			node->op = MOD;
@@ -691,28 +682,26 @@ term_1 : pow_factor
 			$$ = node;
 			$$->SetLines(@1.first_line, @3.last_line);
 	    }
-	| multiply
-	    {
-			ExprNode* node = new ExprNode();
-			node->op = UNARY;
-			node->un.expr = $1;
-			$$ = node;
-			$$->SetLines(@1.first_line, @1.last_line);
-	    }
-	;
-
-multiply : pow_factor pow_factor
-	    {
+	| term_1 term_1
+		{
 			ExprNode* node = new ExprNode();
 			node->op = MULTIPLY;
 			node->bin.left_expr = $1;
 			node->bin.right_expr = $2;
 			$$ = node;
 			$$->SetLines(@1.first_line, @2.last_line);
-	    }
+		}
+	| pow_factor
+		{
+			ExprNode* node = new ExprNode();
+			node->op = UNARY;
+			node->un.expr = $1;
+			$$ = node;
+			$$->SetLines(@1.first_line, @1.last_line);
+		}
 	;
 
-pow_factor : ufactor CAP ufactor
+pow_factor : pow_factor CAP pow_factor
 	    {
 			ExprNode* node = new ExprNode();
 			node->op = CAP;
@@ -905,11 +894,11 @@ get_arr_indexes : RLPAREN expr RRPAREN get_arr_indexes
 			$$ = $4;			
 	    }
 	| RLPAREN expr RRPAREN
-	    {
+		{
 			std::list<ExprNode*>* lst = new std::list<ExprNode*>();
 			lst->push_back($2);
-			$$ = lst;			
-	    }
+			$$ = lst;
+		}
 	;
 
 

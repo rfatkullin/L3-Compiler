@@ -1,0 +1,26 @@
+func main (args->[[char]]) -> int
+	
+	print(1 + 1 + 1);
+	print(1 2 1);
+	print(1 2 1 0);
+	
+	print(12 / 2 / 3);
+
+	print(10 % 100 % 1000);
+
+	print(2^3^3);
+
+	print((1 + 1 + 1) (2 + 2^10));
+
+	print(10 - 5 - 2);
+
+	print((2 + 6) / 4 - 1);
+
+	print(99 + 6 / 2);
+
+	print(2 + 2 - 2);
+
+	print(2 2^10 / 3 % 10 + 2 - 1);
+	
+	main = 0;
+endfunc
