@@ -8,5 +8,14 @@ func main (args->[[char]]) -> int
 		print(b);
 	endfor;
 
+
+	for i = 'a' -> char to 'z' do
+		print(i);
+	endfor;
+
+	for j = 'A' -> char to 'Z' do
+		print(j);
+	endfor;
+
 	main = 0;
 endfunc

@@ -302,7 +302,7 @@ length		return LENGTH;
 									else if ( strlen( numStart ) > 9 )
 										Error( "Numeric literal to char too big!" );
 
-									numStart[ 9 ] = 0;
+									numStart[9] = 0;
 		                            sscanf( yytext, "%x", &tmpCh);
 		                            yylval->m_ch = tmpCh;
 									continued = 1;
@@ -369,26 +369,76 @@ length		return LENGTH;
 								}
 
 <STRING_ESCAPE>[@<>'"]{1}\$		{
-									tmpStr += yytext[ 0 ];
+									switch(yytext[0])
+									{
+										case '@' :
+											tmpStr += "\\a";
+											break;
+										case '<' :
+											tmpStr += "\\b";
+											break;
+										case '>' :
+											tmpStr += "\\t";
+											break;
+										case '\'' :
+											tmpStr += "'";
+											break;
+										case '\"':
+											tmpStr += "\\";
+											tmpStr += "\"";
+											break;
+									}
+
 									continued 	 = 1;
 									BEGIN( STRING );
 								}
 
-<STRING_ESCAPE>^\$				{
-									tmpStr += '\n';
+<STRING_ESCAPE>\^\$				{
+									tmpStr += "\\n";
 									continued 	 = 1;
 									BEGIN( STRING );
 								}
 
 <STRING_ESCAPE><<\$				{
-									tmpStr += '\r';
+									tmpStr += "\\r";
 									continued 	 = 1;
 									BEGIN( STRING );
 								}
 
 <STRING_ESCAPE>{HEX_SUFF}\$ 	{
-                                    sscanf( yytext, "%x", &tmpCh );
-                                    tmpStr += (char)tmpCh;
+									sscanf(yytext, "%x", &tmpCh);
+
+									switch(tmpCh)
+									{
+										case 7 :
+											tmpStr += "\\a";
+											break;
+										case 8 :
+											tmpStr += "\\b";
+											break;
+										case 9 :
+											tmpStr += "\\t";
+											break;
+										case 10 :
+											tmpStr += "\\n";
+											break;
+										case 13 :
+											tmpStr += "\\r";
+											break;
+										case 36 :
+											break;
+										case 34 :
+											tmpStr += "\\";
+											tmpStr += "\"";
+											break;
+										case 39 :
+											tmpStr += "'";
+											break;
+										default :
+											Error("Bad escape character!");
+											break;
+									}
+
                                     continued = 1;
                                     BEGIN( STRING );
                                 }

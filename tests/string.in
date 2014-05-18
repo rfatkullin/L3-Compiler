@@ -19,5 +19,45 @@ func main (args->[[char]]) -> int
 
 	print(AtoB(str, 5));
 
+	print(" ");
+
+	str1 = "Hello$@$Hello" -> [char];
+	str2 = "Hello$<$Hello" -> [char];
+	str3 = "Hello$>$Hello" -> [char];
+	str4 = "Hello$^$Hello" -> [char];
+	str5 = "Hello$<<$Hello" -> [char];
+	str6 = "Hello$$Hello" -> [char];
+	str7 = "Hello$"$Hello" -> [char];
+	str8 = "Hello$'$Hello" -> [char];
+
+	str9 = "Hello$7$Hello" -> [char];
+	str10 = "Hello$8$Hello" -> [char];
+	str11 = "Hello$9$Hello" -> [char];
+	str12 = "Hello$A$Hello" -> [char];
+	str13 = "Hello$D$Hello" -> [char];
+	str14 = "Hello$24$Hello" -> [char];
+	str15 = "Hello$22$Hello" -> [char];
+	str16 = "Hello$27$Hello" -> [char];
+
+	print(str1);
+	print(str2);
+	print(str3);
+	print(str4);
+	print(str5);
+	print(str6);
+	print(str7);
+	print(str8);
+
+	print(" ");
+
+	print(str9);
+	print(str10);
+	print(str11);
+	print(str12);
+	print(str13);
+	print(str14);
+	print(str15);
+	print(str16);
+
 	main = 0;
 endfunc
