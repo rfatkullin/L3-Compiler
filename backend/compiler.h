@@ -71,6 +71,8 @@ namespace L3Compiler
 		bool ExprAssignProcess(Variable var, ExprNode* node);
 		bool ExprProcess(ExprNode* node);
 		bool AddSubParamsToScope(SigNode::SubParams* params, const std::pair<int, int>& pos);
+		void ToLeftAssoc(ExprNode* node);
+		bool IsMulDivModOp(ExprNode* node);
 
 		bool PrintStatementProcess(PrintNode* node);
 		bool LengthStatementProcess(LengthNode* node);
@@ -98,7 +100,7 @@ namespace L3Compiler
 		bool TypeMatch(const TypeNode& aT, const TypeNode& bT);
 
 		Variable GetFreeTmpVar(const TypeNode& type);
-		void RetrieveTmpVar(int num);
+		void RetrieveTmpVar(int num);		
 	};
 
 } // L3Compiler namespace

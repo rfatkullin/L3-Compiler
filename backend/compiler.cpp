@@ -266,6 +266,26 @@ namespace L3Compiler
         return true;
     }
 
+	bool Compiler :: IsMulDivModOp(ExprNode* node)
+	{
+		return node->op == MULTIPLY || node->op == DIVIDE || node->op == MOD;
+	}
+
+	void Compiler :: ToLeftAssoc(ExprNode* node)
+	{
+		while (IsMulDivModOp(node->bin.right_expr))
+		{
+			ExprNode* expr = new ExprNode();
+			expr->op = node->op;
+			expr->bin.left_expr = node->bin.left_expr;
+			expr->bin.right_expr = node->bin.right_expr->bin.left_expr;
+
+			node->op = node->bin.right_expr->op;
+			node->bin.left_expr = expr;
+			node->bin.right_expr = node->bin.right_expr->bin.right_expr;
+		}
+	}
+
 	bool Compiler :: ExprProcess(ExprNode* node)
 	{		
 		TypeNode type1(INT_TYPE, 0);
@@ -352,6 +372,9 @@ namespace L3Compiler
 
 		if (isUnary)
 			return true;
+
+		if (IsMulDivModOp(node))
+			ToLeftAssoc(node);
 
 		CHECK_TRUE(ExprProcess(node->bin.left_expr));
 		CHECK_TRUE(ExprProcess(node->bin.right_expr));
